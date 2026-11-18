@@ -22,6 +22,7 @@ the two. Fields that legitimately differ between runs:
 | `created_at`, `updated_at`, `inspected_at` | wall clock (UTC, format `YYYY-MM-DDTHH:MM:SS+00:00`) |
 | `stored_name` | 48 random hex chars + extension |
 | `today`, `analytics.start/end` for the default range, CSV filename date | current Bangkok date |
+| order of stays with the same check-in date (snapshot, search, CSV) | `created_at DESC`, ties in insertion order: two bookings tie only when saved in the same second; compared as a set, and the replay's order is checked against the rule |
 | `set-cookie` | session cookie name/value |
 | HTML `bytes` | markup is rebuilt in Razor |
 

@@ -58,6 +58,12 @@ CHECK constraints and indexes keep the v1 schema. GUIDs are lowercase TEXT and t
 value converters.
 Interceptors set `created_at`/`updated_at` and SQLite pragmas (foreign keys, WAL, 5 s busy timeout). `deleted_at` is a
 global query filter; deletes are physical, as before. Search uses `lower(col) LIKE lower(@p)` (`StaySearchExtensions`).
+Stays are listed `check_in_date DESC, created_at DESC, rowid ASC` (snapshot, search, guest detail, CSV). `created_at`
+has second precision, so bookings saved in the same second tie; v1 returned those in insertion order, which the SQLite
+`rowid` reproduces. `SqliteFunctions.RowId(s.Id)` translates to the table's implicit `rowid` column (read-only, not in
+the model, no migration); guest summaries pick their first stay by `created_at, rowid` the same way. `VACUUM` may
+renumber rowids but keeps their order. Whether two bookings tie depends on timing, so `tests/baseline/compare.mjs`
+compares stays that share a check-in date as a set and checks the replay's own order against the rule.
 
 ## Security
 

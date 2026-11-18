@@ -408,4 +408,25 @@ public sealed class ResortDataTests(SqliteDatabaseFactory factory) : IClassFixtu
         Assert.Equal(31, snapshot.Analytics.Daily.Count);
         await Assert.ThrowsAsync<ValidationException>(() => s.Snapshots.GetAsync("2030-01-01", "2031-02-01", default));
     }
+
+    [Fact]
+    public async Task StaysCreatedInTheSameSecondKeepInsertionOrder()
+    {
+        await using var s = await TestServices.CreateAsync(factory);
+        var rooms = await s.Queries.RoomsAsync();
+        var created = new List<Guid>();
+        for (var i = 0; i < 3; i++)
+        {
+            var stay = await s.Stays.SaveAsync(TestInputs.Stay(rooms[i].Id, ("guest_name", $"ลูกค้า ลำดับ {i}")), null, s.Admin, default);
+            created.Add(stay.Id);
+        }
+
+        // Timestamps have second precision (v1 format), so bookings can tie on check-in date and created_at;
+        // v1 listed tied rows in insertion order.
+        await s.Db.Database.ExecuteSqlRawAsync("UPDATE stays SET created_at = '2030-01-01T00:00:00+00:00'");
+
+        Assert.Equal(created, (await s.Queries.StaysAsync()).Select(x => x.Id));
+        Assert.Equal(created, (await s.Queries.SearchStaysAsync("ลำดับ", null)).Select(x => x.Id));
+        Assert.Equal(created[0], (await s.Queries.GuestSummariesAsync()).Single().StayId);
+    }
 }

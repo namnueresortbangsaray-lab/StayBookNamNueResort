@@ -26,6 +26,45 @@ const mask = value => {
   }
   return value;
 };
+// Stays are listed check_in_date DESC, created_at DESC, then in insertion order. created_at has second precision, so
+// whether two bookings saved during a run tie depends on timing: in the v1 recording "ทดสอบ Baseline" and "Pet Owner"
+// were saved in the same second (insertion order wins); in a slower replay they are not, and the newer one comes first,
+// as it would in v1. So stays that share a check-in date are compared as a set (snapshot, search, CSV), and the
+// replay's own order is checked against the rule instead. The insertion-order tie-break has a data test.
+const byText = (a, b) => (a < b ? -1 : a > b ? 1 : 0);
+const sameDayRuns = (rows, day) => rows.reduce((runs, row) => {
+  const last = runs.at(-1);
+  if (last && day(last[0]) === day(row)) last.push(row); else runs.push([row]);
+  return runs;
+}, []);
+const isStay = v => v !== null && typeof v === 'object' && !Array.isArray(v) && 'guest_name' in v && 'check_in_date' in v && 'created_at' in v;
+const stayArrays = (value, found = []) => {
+  if (Array.isArray(value)) {
+    if (value.length && value.every(isStay)) found.push(value);
+    value.forEach(v => stayArrays(v, found));
+  } else if (value && typeof value === 'object') Object.values(value).forEach(v => stayArrays(v, found));
+  return found;
+};
+const canonicalStays = value => {
+  if (Array.isArray(value)) {
+    const items = value.map(canonicalStays);
+    if (!items.length || !items.every(isStay)) return items;
+    return sameDayRuns(items, s => s.check_in_date)
+      .flatMap(run => run.map(s => [JSON.stringify(mask(s)), s]).sort(([a], [b]) => byText(a, b)).map(([, s]) => s));
+  }
+  if (value && typeof value === 'object') return Object.fromEntries(Object.entries(value).map(([k, v]) => [k, canonicalStays(v)]));
+  return value;
+};
+const staysOutOfOrder = json => stayArrays(json).some(rows => rows.some((s, i) => i > 0 && (
+  rows[i - 1].check_in_date < s.check_in_date || (rows[i - 1].check_in_date === s.check_in_date && rows[i - 1].created_at < s.created_at))));
+const CSV_CHECK_IN = /,(\d{4}-\d{2}-\d{2}),\d{4}-\d{2}-\d{2},\d+,[^,]*$/;
+const canonicalCsv = text => {
+  const [head, ...rows] = text.split('\n');
+  const tail = rows.at(-1) === '' ? rows.pop() : undefined;
+  const sorted = sameDayRuns(rows, row => CSV_CHECK_IN.exec(row)?.[1] ?? row).flatMap(run => run.sort(byText));
+  return [head, ...sorted, ...(tail === undefined ? [] : [tail])].join('\n');
+};
+
 const normalizeType = v => v?.toLowerCase().replace(/\s+/g, '');
 const today = /\d{4}-\d{2}-\d{2}/g;
 // The default snapshot range is the current month, so its dates depend on the day the replay runs (the baseline was
@@ -65,9 +104,10 @@ for (const file of readdirSync(baselineDir).filter(f => f !== '_index.json').sor
   if (b.kind !== r.kind) { report('body:kind', b.kind, r.kind); continue; }
   if (b.kind === 'json') {
     const month = name === 'snapshot-default-range' ? wholeMonth : json => json;
-    const expected = JSON.stringify(mask(month(b.json)));
-    const actual = JSON.stringify(mask(month(r.json)));
+    const expected = JSON.stringify(mask(canonicalStays(month(b.json))));
+    const actual = JSON.stringify(mask(canonicalStays(month(r.json))));
     if (expected !== actual) report('body:json', expected, actual);
+    if (staysOutOfOrder(r.json)) report('order:stays', 'check_in_date DESC, created_at DESC', JSON.stringify(stayArrays(r.json).map(rows => rows.map(s => [s.guest_name, s.check_in_date, s.created_at]))));
   } else if (b.kind === 'html') {
     if (b.title !== r.title) report('body:title', b.title, r.title);
     const missingIds = b.ids.filter(id => !r.ids.includes(id));
@@ -75,8 +115,8 @@ for (const file of readdirSync(baselineDir).filter(f => f !== '_index.json').sor
     const missingText = b.text.filter(t => !r.text.includes(t));
     if (missingText.length) report('body:text', missingText.join(' | '), '(missing)');
   } else if (b.kind === 'csv') {
-    const expected = mask(b.text);
-    const actual = mask(r.text);
+    const expected = canonicalCsv(mask(b.text));
+    const actual = canonicalCsv(mask(r.text));
     if (expected !== actual) report('body:csv', expected, actual);
   }
 }

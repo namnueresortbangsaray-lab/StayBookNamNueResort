@@ -47,10 +47,10 @@ public sealed class ResortQueries(AppDbContext db)
         var guests = await db.Guests.AsNoTracking().OrderByDescending(g => g.UpdatedAt).ToListAsync(cancellationToken);
         var stays = await db.Stays.AsNoTracking()
             .Where(s => s.GuestId != null)
-            .Select(s => new GuestStayRow(s.GuestId!.Value, s.Id, s.CheckInDate, s.CheckOutDate, s.Status, s.TotalAmountSatang, s.DiscountAmountSatang, s.Room!.Name, s.CreatedAt))
+            .Select(s => new GuestStayRow(s.GuestId!.Value, s.Id, s.CheckInDate, s.CheckOutDate, s.Status, s.TotalAmountSatang, s.DiscountAmountSatang, s.Room!.Name, s.CreatedAt, SqliteFunctions.RowId(s.Id)))
             .ToListAsync(cancellationToken);
         var byGuest = stays
-            .OrderBy(s => s.CreatedAt).ThenBy(s => s.Id)
+            .OrderBy(s => s.CreatedAt).ThenBy(s => s.RowId)
             .GroupBy(s => s.GuestId)
             .ToDictionary(g => g.Key, g => g.ToList());
         return guests.ConvertAll(g => Summarize(g, byGuest.GetValueOrDefault(g.Id) ?? []));
@@ -125,7 +125,7 @@ public sealed class ResortQueries(AppDbContext db)
 
     private static IQueryable<StayDto> ProjectStays(IQueryable<Stay> stays) => stays
         .AsNoTracking()
-        .OrderByDescending(s => s.CheckInDate).ThenByDescending(s => s.CreatedAt)
+        .OrderByDescending(s => s.CheckInDate).ThenByDescending(s => s.CreatedAt).ThenBy(s => SqliteFunctions.RowId(s.Id))
         .Select(s => new StayDto
         {
             Id = s.Id,
@@ -215,5 +215,6 @@ public sealed class ResortQueries(AppDbContext db)
         long TotalAmountSatang,
         long DiscountAmountSatang,
         string RoomName,
-        DateTimeOffset CreatedAt);
+        DateTimeOffset CreatedAt,
+        long RowId);
 }
