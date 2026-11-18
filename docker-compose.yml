@@ -38,8 +38,10 @@ services:
       - staybook_logs:/storage/logs
       - staybook_keys:/storage/keys
 
+  # Comes back by itself after a reboot or a Docker restart (it stayed down for 11 days once without this).
   web:
     <<: *app
+    restart: unless-stopped
     ports:
       - "${APP_PORT:-8080}:8080"
     depends_on:
