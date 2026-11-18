@@ -30,7 +30,7 @@ public static class CliRunner
         {
             return await command.RunAsync(new CliArguments(args.Skip(1)), output, error, cancellationToken);
         }
-        catch (Exception exception) when (exception is IOException or InvalidOperationException or ArgumentException or Microsoft.Data.Sqlite.SqliteException or Npgsql.NpgsqlException)
+        catch (Exception exception) when (exception is IOException or InvalidOperationException or ArgumentException or Microsoft.Data.Sqlite.SqliteException)
         {
             await error.WriteLineAsync($"{command.Name} failed: {exception.Message}");
             return 1;

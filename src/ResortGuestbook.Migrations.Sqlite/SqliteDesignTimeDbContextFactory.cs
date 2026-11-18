@@ -8,5 +8,5 @@ namespace ResortGuestbook.Migrations.Sqlite;
 public sealed class SqliteDesignTimeDbContextFactory : IDesignTimeDbContextFactory<AppDbContext>
 {
     public AppDbContext CreateDbContext(string[] args) =>
-        new(AppDbContextOptions.Create(DatabaseProvider.Sqlite, "Data Source=:memory:", clock: null));
+        new(AppDbContextOptions.Create("Data Source=:memory:", clock: null));
 }

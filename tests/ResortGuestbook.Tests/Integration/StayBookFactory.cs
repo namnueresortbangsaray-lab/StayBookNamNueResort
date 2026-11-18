@@ -23,7 +23,6 @@ public class StayBookFactory : WebApplicationFactory<Program>
         {
             ["ASPNETCORE_ENVIRONMENT"] = "Testing",
             ["ConnectionStrings__Sqlite"] = $"Data Source={Path.Combine(Root, "staybook.db")};Pooling=False",
-            ["Database__Provider"] = "Sqlite",
             ["Database__AutoMigrate"] = "true",
             ["Database__Seed"] = "true",
             ["Storage__UploadsPath"] = Path.Combine(Root, "uploads"),

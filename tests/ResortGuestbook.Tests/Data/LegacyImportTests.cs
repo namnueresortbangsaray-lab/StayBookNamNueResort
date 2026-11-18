@@ -9,34 +9,8 @@ using ResortGuestbook.Web.Infrastructure.Identity;
 
 namespace ResortGuestbook.Tests.Data;
 
-[Collection(PostgresCollection.Name)]
-public sealed class TransferAndImportTests(PostgresDatabaseFactory postgres, SqliteDatabaseFactory sqlite)
+public sealed class LegacyImportTests(SqliteDatabaseFactory sqlite) : IClassFixture<SqliteDatabaseFactory>
 {
-    [Fact]
-    public async Task TransferFromSqliteToPostgresCopiesEveryRowAndIsRerunnable()
-    {
-        await using var source = await TestServices.CreateAsync(sqlite);
-        var room = (await source.Queries.RoomsAsync())[0];
-        var stay = await source.Stays.SaveAsync(TestInputs.Stay(room.Id, ("id_verified", true), ("status", 1L)), null, source.Admin, default);
-        await source.Stays.CheckoutAsync(stay.Id.ToString(), TestInputs.Input(("no_damage", true)), source.Admin, default);
-
-        var targetConnection = await postgres.CreateDatabaseAsync();
-        await using var target = new AppDbContext(AppDbContextOptions.Create(DatabaseProvider.Postgres, targetConnection, clock: null));
-        await target.Database.MigrateAsync();
-        var data = await DataSet.ReadAsync(source.Db, default);
-
-        var first = await DataSetWriter.WriteAsync(target, data, truncate: false, dryRun: false, default);
-        var second = await DataSetWriter.WriteAsync(target, data, truncate: false, dryRun: false, default);
-
-        Assert.All(first, c => Assert.Equal(c.Source, c.Target));
-        Assert.Equal(first, second);
-        var copied = await target.Stays.AsNoTracking().SingleAsync();
-        var original = await source.Db.Stays.AsNoTracking().SingleAsync();
-        Assert.Equal(original.Id, copied.Id);
-        Assert.Equal(original.CreatedAt, copied.CreatedAt);
-        Assert.Equal(original.CheckOutDate, copied.CheckOutDate);
-    }
-
     [Fact]
     public async Task ImportsLegacyDatabaseKeepingIdsAndPasswords()
     {
@@ -45,7 +19,7 @@ public sealed class TransferAndImportTests(PostgresDatabaseFactory postgres, Sql
         try
         {
             var data = await LegacyDatabaseReader.ReadAsync(legacyPath, default);
-            await using var target = new AppDbContext(AppDbContextOptions.Create(DatabaseProvider.Sqlite, await sqlite.CreateDatabaseAsync(), clock: null));
+            await using var target = new AppDbContext(AppDbContextOptions.Create(await sqlite.CreateDatabaseAsync(), clock: null));
             await target.Database.MigrateAsync();
             var counts = await DataSetWriter.WriteAsync(target, data, truncate: true, dryRun: false, default);
 

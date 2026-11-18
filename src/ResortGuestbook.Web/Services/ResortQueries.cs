@@ -32,7 +32,7 @@ public sealed class ResortQueries(AppDbContext db)
         var query = db.Stays.AsQueryable();
         if (search.Length > 0)
         {
-            query = query.WhereTextMatches(db.Database, $"%{search.Trim()}%");
+            query = query.WhereTextMatches($"%{search.Trim()}%");
         }
 
         if (status is { } value)

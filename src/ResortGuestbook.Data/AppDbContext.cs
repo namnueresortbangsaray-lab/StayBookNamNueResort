@@ -24,18 +24,17 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
     {
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
 
-        var sqlite = Database.IsSqlite();
         foreach (var entity in modelBuilder.Model.GetEntityTypes())
         {
             foreach (var property in entity.GetProperties())
             {
                 property.SetColumnName(ToSnakeCase(property.Name));
                 var type = Nullable.GetUnderlyingType(property.ClrType) ?? property.ClrType;
-                if (sqlite && type == typeof(Guid))
+                if (type == typeof(Guid))
                 {
                     property.SetValueConverter(new LowercaseGuidConverter());
                 }
-                else if (sqlite && type == typeof(DateTimeOffset))
+                else if (type == typeof(DateTimeOffset))
                 {
                     property.SetValueConverter(new UtcTimestampConverter());
                 }
@@ -49,12 +48,6 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
                     Expression.Constant(null, typeof(DateTimeOffset?)));
                 modelBuilder.Entity(entity.ClrType).HasQueryFilter(Expression.Lambda(notDeleted, row));
             }
-        }
-
-        if (!sqlite)
-        {
-            modelBuilder.Entity<AuditLog>().Property(a => a.BeforeJson).HasColumnType("jsonb");
-            modelBuilder.Entity<AuditLog>().Property(a => a.AfterJson).HasColumnType("jsonb");
         }
     }
 

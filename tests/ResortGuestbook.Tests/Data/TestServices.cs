@@ -12,10 +12,9 @@ namespace ResortGuestbook.Tests.Data;
 /// <summary>The application services wired by hand against one migrated and seeded database.</summary>
 public sealed class TestServices : IAsyncDisposable
 {
-    private TestServices(AppDbContext db, DatabaseProvider provider, string connectionString)
+    private TestServices(AppDbContext db, string connectionString)
     {
         Db = db;
-        Provider = provider;
         ConnectionString = connectionString;
         var clock = new AppClock(TimeProvider.System, Microsoft.Extensions.Options.Options.Create(new AppOptions()));
         Queries = new ResortQueries(db);
@@ -32,7 +31,6 @@ public sealed class TestServices : IAsyncDisposable
     }
 
     public AppDbContext Db { get; }
-    public DatabaseProvider Provider { get; }
     public string ConnectionString { get; }
     public ResortQueries Queries { get; }
     public RoomService Rooms { get; }
@@ -49,11 +47,11 @@ public sealed class TestServices : IAsyncDisposable
     public static async Task<TestServices> CreateAsync(IDatabaseFactory factory)
     {
         var connectionString = await factory.CreateDatabaseAsync();
-        var db = new AppDbContext(AppDbContextOptions.Create(factory.Provider, connectionString, TimeProvider.System));
+        var db = new AppDbContext(AppDbContextOptions.Create(connectionString, TimeProvider.System));
         await db.Database.MigrateAsync();
         await new DatabaseSeeder(db, new LegacyBcryptPasswordHasher()).SeedAsync("admin@staybook.local", "ChangeMe123!");
         var admin = await db.Users.SingleAsync();
-        return new TestServices(db, factory.Provider, connectionString)
+        return new TestServices(db, connectionString)
         {
             Admin = new Actor(admin.Id, admin.Name, admin.Email, admin.Role, "127.0.0.1"),
         };

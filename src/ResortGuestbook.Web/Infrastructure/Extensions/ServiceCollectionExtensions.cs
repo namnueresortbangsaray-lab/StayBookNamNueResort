@@ -79,7 +79,7 @@ public static class ServiceCollectionExtensions
         var database = DatabaseSettings.FromConfiguration(configuration);
         services.AddSingleton(database);
         services.AddDbContext<AppDbContext>((sp, options) =>
-            AppDbContextOptions.Configure(options, database.Provider, database.ConnectionString(database.Provider), sp.GetRequiredService<TimeProvider>()));
+            AppDbContextOptions.Configure(options, database.SqliteConnectionString, sp.GetRequiredService<TimeProvider>()));
         services.AddHealthChecks().AddDbContextCheck<AppDbContext>();
 
         AddIdentity(services, auth);
@@ -147,7 +147,6 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ICliCommand, SeedCommand>();
         services.AddScoped<ICliCommand, UserCreateCommand>();
         services.AddScoped<ICliCommand, DbBackupCommand>();
-        services.AddScoped<ICliCommand, DbTransferCommand>();
         services.AddScoped<ICliCommand, ImportPhpCommand>();
         return builder;
     }

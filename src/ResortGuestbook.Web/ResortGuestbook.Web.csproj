@@ -7,7 +7,6 @@
   <ItemGroup>
     <ProjectReference Include="..\ResortGuestbook.Data\ResortGuestbook.Data.csproj" />
     <ProjectReference Include="..\ResortGuestbook.Migrations.Sqlite\ResortGuestbook.Migrations.Sqlite.csproj" />
-    <ProjectReference Include="..\ResortGuestbook.Migrations.Postgres\ResortGuestbook.Migrations.Postgres.csproj" />
   </ItemGroup>
 
   <ItemGroup>

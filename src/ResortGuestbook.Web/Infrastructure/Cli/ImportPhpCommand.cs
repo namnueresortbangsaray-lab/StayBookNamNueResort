@@ -30,7 +30,7 @@ public sealed class ImportPhpCommand(DatabaseSettings settings, IOptions<Storage
 
         var data = await LegacyDatabaseReader.ReadAsync(sqlite, cancellationToken);
         var dryRun = arguments.Flag("dry-run");
-        await using var target = new AppDbContext(AppDbContextOptions.Create(settings.Provider, settings.ConnectionString(settings.Provider), clock: null));
+        await using var target = new AppDbContext(AppDbContextOptions.Create(settings.SqliteConnectionString, clock: null));
         if (!dryRun)
         {
             await target.Database.MigrateAsync(cancellationToken);

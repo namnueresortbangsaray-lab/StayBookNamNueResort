@@ -1,9 +1,7 @@
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Infrastructure;
 using ResortGuestbook.Data.Conversions;
 using ResortGuestbook.Data.Entities;
-using ResortGuestbook.Data.Providers;
 using ResortGuestbook.Data.Transfer;
 
 namespace ResortGuestbook.Data.Legacy;
@@ -24,7 +22,6 @@ public static class LegacyDatabaseReader
         var connectionString = new SqliteConnectionStringBuilder { DataSource = path, Mode = SqliteOpenMode.ReadOnly, Pooling = false }.ToString();
         var options = new DbContextOptionsBuilder<AppDbContext>()
             .UseSqlite(connectionString)
-            .ReplaceService<IModelCacheKeyFactory, ProviderModelCacheKeyFactory>()
             .Options;
 
         await using var db = new AppDbContext(options);
