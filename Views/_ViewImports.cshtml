@@ -1,0 +1,9 @@
+@using StayBook
+@using StayBook.Models
+@using StayBook.Models.ViewModels
+@using StayBook.Resources
+@using Microsoft.Extensions.Localization
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@addTagHelper *, StayBook
+@inject StayBook.Helpers.Middleware.CspNonce Nonce
+@inject IStringLocalizer<SharedResource> T

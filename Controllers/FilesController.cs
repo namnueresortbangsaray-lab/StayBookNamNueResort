@@ -1,0 +1,54 @@
+using System.Text.RegularExpressions;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using StayBook.Context;
+using StayBook.Helpers.Http;
+using StayBook.Helpers.Storage;
+
+namespace StayBook.Controllers;
+
+/// <summary>Authenticated attachment download; uploads have no public URL.</summary>
+public sealed partial class FilesController(AppDbContext db, IFileStorage storage) : Controller
+{
+    private const string NotFoundMessage = "ไม่พบไฟล์";
+
+    [HttpGet("/files/{id}")]
+    [HttpHead("/files/{id}")]
+    public async Task<IActionResult> Download(string id, CancellationToken cancellationToken)
+    {
+        var attachment = Guid.TryParse(id, out var key)
+            ? await db.Attachments.AsNoTracking().FirstOrDefaultAsync(a => a.Id == key, cancellationToken)
+            : null;
+        var stream = attachment is null ? null : await storage.OpenReadAsync(attachment.StoredName, cancellationToken);
+        if (attachment is null || stream is null)
+        {
+            return ApiResults.Error(StatusCodes.Status404NotFound, NotFoundMessage);
+        }
+
+        var name = UnsafeFileNameCharacters().Replace(attachment.OriginalName, "_");
+        Response.Headers.ContentDisposition = $"attachment; filename=\"{(name.Length > 0 ? name : "download")}\"";
+        return File(stream, attachment.MimeType);
+    }
+
+    /// <summary>A booking's ID card photo, shown inline to signed-in staff and never cached.</summary>
+    [HttpGet("/files/id-photo/{stayId}")]
+    public async Task<IActionResult> IdPhoto(string stayId, CancellationToken cancellationToken)
+    {
+        var photo = Guid.TryParse(stayId, out var key)
+            ? await db.StayIdPhotos.AsNoTracking().FirstOrDefaultAsync(p => p.StayId == key, cancellationToken)
+            : null;
+        var stream = photo is null ? null : await storage.OpenReadAsync(photo.StoredName, cancellationToken);
+        if (photo is null || stream is null)
+        {
+            return ApiResults.Error(StatusCodes.Status404NotFound, NotFoundMessage);
+        }
+
+        Response.Headers.CacheControl = "no-store";
+        Response.Headers.ContentDisposition = "inline";
+        return File(stream, photo.MimeType);
+    }
+
+    /// <summary>v1: <c>preg_replace('/[^\pL\pN._ -]+/u', '_', $name)</c>.</summary>
+    [GeneratedRegex(@"[^\p{L}\p{N}._ -]+")]
+    private static partial Regex UnsafeFileNameCharacters();
+}

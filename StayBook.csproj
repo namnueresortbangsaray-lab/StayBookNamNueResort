@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <RootNamespace>StayBook</RootNamespace>
+    <AssemblyName>StayBook</AssemblyName>
+    <UserSecretsId>resortguestbook-web</UserSecretsId>
+    <!-- One project at the repository root: tests, docs, local data and front-end tooling are not part of it. -->
+    <DefaultItemExcludes>$(DefaultItemExcludes);tests/**;Docs/**;nginx/**;storage/**;node_modules/**;.config/**;.github/**</DefaultItemExcludes>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="BCrypt.Net-Next" />
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" />
+    <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore" />
+    <PackageReference Include="Serilog.AspNetCore" />
+    <PackageReference Include="Serilog.Sinks.File" />
+    <PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="package.json;package-lock.json;global.json;railway.json" />
+    <None Include="package.json" />
+  </ItemGroup>
+
+</Project>

@@ -31,7 +31,7 @@ dotnet_diagnostic.IDE0005.severity = warning
 dotnet_diagnostic.IDE0161.severity = warning
 
 # EF Core generates migrations; keep them as generated.
-[src/ResortGuestbook.Migrations.*/Migrations/*.cs]
+[Data/Migrations/*.cs]
 generated_code = true
 dotnet_diagnostic.IDE0005.severity = none
 dotnet_diagnostic.IDE0161.severity = none
