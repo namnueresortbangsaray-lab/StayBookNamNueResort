@@ -93,6 +93,7 @@ if ($('#app')) {
     const items = [];
     if (canBook && status === 0) items.push({ action: 'edit-booking', id: stay.id, label: t('ui.booking.edit'), icon: 'edit' });
     if (canBook && status === 1) items.push({ action: 'extend', id: stay.id, label: t('ui.action.extend'), icon: 'clock' });
+    if (canCheckout && status === 2 && stay.feedback_rating == null) items.push({ action: 'feedback-link', id: stay.id, label: t('ui.feedback_link.action'), icon: 'qr' });
     items.push({ action: 'upload', id: stay.id, label: t('ui.action.upload'), icon: 'upload' });
     if (state.idPhotos?.has(stay.id)) items.push({ action: 'view-id-photo', id: stay.id, label: t('ui.id_photo.view'), icon: 'idCard' });
     if (canBook) {
@@ -136,9 +137,11 @@ if ($('#app')) {
     try {
       const start = $('#range-start')?.value || '';
       const end = $('#range-end')?.value || '';
-      [state.data, state.categories] = await Promise.all([
-        api(`/api/v1/snapshot${start && end ? `?start=${start}&end=${end}` : ''}`),
+      const range = start && end ? `?start=${start}&end=${end}` : '';
+      [state.data, state.categories, state.feedback] = await Promise.all([
+        api(`/api/v1/snapshot${range}`),
         api('/api/v1/room-categories'),
+        api(`/api/v1/feedback${range}`),
       ]);
       state.idPhotos = new Map((await api('/api/v1/id-photos')).map(p => [p.stay_id, p]));
       if (isAdmin) state.users = await api('/api/v1/users');
@@ -601,7 +604,59 @@ if ($('#app')) {
           { label: t('ui.reports.deposit_none'), value: a.deposits.none, tone: 'neutral' },
         ])}
       </div>
-      ${channelCard(a)}`;
+      ${channelCard(a)}
+      ${feedbackCard(state.feedback)}`;
+  }
+
+  // Guest feedback (D-30): answers guests sent through their link, for bookings that start in the report range.
+  function feedbackCard(f) {
+    if (!f) return '';
+    const score = value => t('ui.reports.feedback_score', { n: Number(value).toFixed(1) });
+    const percent = (part, whole) => (whole ? Math.round((part / whole) * 100) : 0);
+    const header = `<div class="card-header items-start"><div><h2 id="feedback-title" class="card-title">${h(t('ui.reports.feedback_title'))}</h2><p class="text-sm text-ink-muted">${h(t('ui.reports.feedback_sub'))}</p></div></div>`;
+    if (!f.response_count) {
+      return `<section class="card mt-6" aria-labelledby="feedback-title">${header}<div class="card-body">${emptyState({ iconName: 'star', title: t('ui.reports.feedback_empty') })}</div></section>`;
+    }
+    const topics = [
+      ['cleanliness_rating', f.average_cleanliness],
+      ['service_rating', f.average_service],
+      ['facility_rating', f.average_facility],
+    ];
+    const answered = value => iso(new Date(value));
+    return `<section class="card mt-6" aria-labelledby="feedback-title">
+      ${header}
+      <div class="card-body grid gap-6 md:grid-cols-2">
+        <dl class="figure-list">
+          <div class="figure"><dt>${h(t('ui.reports.feedback_overall'))}</dt><dd>${h(score(f.average_overall))}</dd></div>
+          <div class="figure"><dt>${h(t('ui.reports.feedback_responses'))}</dt><dd>${number(f.response_count)} <span class="block text-xs font-normal text-ink-subtle">${h(t('ui.reports.feedback_rate', { n: number(f.response_count), total: number(f.checked_out_count) }))}</span></dd></div>
+          <div class="figure"><dt>${h(t('ui.reports.feedback_return'))}</dt><dd>${percent(f.would_return_count, f.response_count)}%</dd></div>
+        </dl>
+        <section aria-labelledby="feedback-topics-title">
+          <h3 id="feedback-topics-title" class="mb-2 text-sm font-medium text-ink-muted">${h(t('ui.reports.feedback_topics'))}</h3>
+          <ul class="space-y-3 text-sm">${topics.map(([key, value]) => `<li>
+            <div class="flex items-center justify-between gap-3"><span class="text-ink-muted">${h(t(`ui.guest_feedback.q.${key}`))}</span><span class="tabular-nums text-ink">${h(score(value))}</span></div>
+            <div class="stack-bar mt-1.5" aria-hidden="true"><span class="tone-primary" style="width:${(Number(value) / 5) * 100}%"></span></div>
+          </li>`).join('')}</ul>
+        </section>
+      </div>
+      <div class="table-wrap">
+        <table class="data-table">
+          <caption class="sr-only">${h(t('ui.reports.feedback_answers'))}</caption>
+          <thead><tr>
+            <th scope="col">${h(t('ui.reports.feedback_answered'))}</th>
+            <th scope="col">${h(t('ui.col.guest'))}</th>
+            <th scope="col" class="num">${h(t('ui.reports.feedback_overall'))}</th>
+            <th scope="col" class="hidden sm:table-cell">${h(t('ui.reports.feedback_comment'))}</th>
+          </tr></thead>
+          <tbody>${f.items.map(item => `<tr>
+            <td class="whitespace-nowrap">${h(thaiDate(answered(item.created_at)))}</td>
+            <td><p class="cell-title">${h(item.guest_name)}</p><p class="cell-sub">${h(t('ui.room_label', { name: item.room_name }))} · ${h(shortDate(item.check_in_date))}</p>${item.comment ? `<p class="cell-sub whitespace-pre-line sm:hidden">${h(item.comment)}</p>` : ''}</td>
+            <td class="num">${h(score(item.overall_rating))}</td>
+            <td class="hidden whitespace-pre-line sm:table-cell">${item.comment ? h(item.comment) : '<span class="text-ink-subtle">—</span>'}</td>
+          </tr>`).join('')}</tbody>
+        </table>
+      </div>
+    </section>`;
   }
 
   // ================= ROOMS =================
@@ -1117,6 +1172,35 @@ if ($('#app')) {
     if (!$('#file-dialog').open) $('#file-dialog').showModal();
   }
 
+  /** The guest's feedback link and QR code for a checked-out booking (D-30). */
+  async function openFeedbackLink(id) {
+    const s = state.data.stays.find(x => x.id === id);
+    try {
+      const link = await api(`/api/v1/stays/${id}/feedback-link`);
+      $('#feedback-link-subtitle').textContent = s ? `${t('ui.room_label', { name: s.room_name })} · ${s.guest_name}` : '';
+      $('#feedback-link-qr').src = link.qr_png;
+      $('#feedback-link-url').value = link.url;
+      $('#feedback-link-open').href = link.url;
+      $('#feedback-link-expires').textContent = t('ui.feedback_link.expires', { date: thaiDate(link.expires_on) });
+      $('#feedback-link-status').hidden = !link.submitted;
+      $('#feedback-link-dialog').showModal();
+    } catch (error) {
+      toast(Object.values(error.errors || {})[0] || error.message, 'error');
+    }
+  }
+
+  /** The clipboard API needs a secure context; on the resort LAN (plain HTTP) select-and-copy is the fallback. */
+  async function copyFeedbackLink() {
+    const input = $('#feedback-link-url');
+    try {
+      await navigator.clipboard.writeText(input.value);
+    } catch {
+      input.select();
+      document.execCommand('copy');
+    }
+    toast(t('ui.feedback_link.copied'));
+  }
+
   function openAction(action, id) {
     const s = state.data.stays.find(x => x.id === id);
     const f = $('#action-form');
@@ -1433,6 +1517,8 @@ if ($('#app')) {
       renderBookings();
     }
     if (['checkout', 'extend', 'upload'].includes(a)) openAction(a, id);
+    if (a === 'feedback-link') await openFeedbackLink(id);
+    if (a === 'copy-feedback-link') await copyFeedbackLink();
 
     if (a === 'check-in') {
       const stay = state.data.stays.find(item => item.id === id);
@@ -1611,7 +1697,8 @@ if ($('#app')) {
       progress.hidden = true;
       return;
     }
-    await mutate(`/api/v1/stays/${id}/${action}`, 'POST', d, e.currentTarget);
+    const done = await mutate(`/api/v1/stays/${id}/${action}`, 'POST', d, e.currentTarget);
+    if (done && action === 'checkout') await openFeedbackLink(id);
   });
 
   $('#stay-search')?.addEventListener('input', () => {

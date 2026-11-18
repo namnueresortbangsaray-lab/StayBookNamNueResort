@@ -18,6 +18,10 @@ public sealed class AuditService(AppDbContext db)
     public Task RecordSystemAsync(string action, string entityType, Guid entityId, object? before, object? after, CancellationToken cancellationToken) =>
         AddAsync(action, entityType, entityId, before, after, null, "system", cancellationToken);
 
+    /// <summary>Actions a guest takes through a feedback link: no user, the guest's IP.</summary>
+    public Task RecordGuestAsync(string action, string entityType, Guid entityId, object? before, object? after, string ip, CancellationToken cancellationToken) =>
+        AddAsync(action, entityType, entityId, before, after, null, ip, cancellationToken);
+
     private async Task AddAsync(string action, string entityType, Guid entityId, object? before, object? after, Guid? userId, string ip, CancellationToken cancellationToken)
     {
         db.AuditLogs.Add(new AuditLog

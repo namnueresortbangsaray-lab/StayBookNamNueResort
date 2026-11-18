@@ -7,4 +7,7 @@ public static class RateLimitPolicies
 
     /// <summary>API writes per signed-in user.</summary>
     public const string Writes = "writes";
+
+    /// <summary>Guest feedback form posts per client IP (no sign-in).</summary>
+    public const string Guest = "guest";
 }

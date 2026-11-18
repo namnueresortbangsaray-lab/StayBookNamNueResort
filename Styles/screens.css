@@ -85,6 +85,12 @@
   .file-name { @apply truncate px-2.5 py-2 text-xs text-ink; }
   .viewer-img { @apply mx-auto block max-h-[70dvh] w-auto max-w-full rounded; }
 
+  /* ---------- Guest feedback page (public) ---------- */
+  .guest-shell { @apply mx-auto flex min-h-[100dvh] max-w-xl flex-col px-4 py-6 sm:px-6 sm:py-10; }
+  .guest-card { @apply mt-6 rounded-lg border border-line bg-surface p-5 sm:p-8; }
+  /* The QR PNG carries its own white quiet zone, so it scans in the dark theme too; keep its pixels sharp. */
+  .qr-image { @apply mx-auto block h-56 w-56 rounded border border-line; image-rendering: pixelated; }
+
   /* ---------- Error page ---------- */
   .error-shell { @apply mx-auto flex min-h-[100dvh] max-w-xl flex-col justify-center px-6 py-12; }
   .error-code { @apply text-2xl font-semibold tabular-nums text-accent-ink; }

@@ -49,6 +49,7 @@ endpoint, so they never trigger a login redirect.
 | `PriceCalculator`, `CsvWriter` | Pricing rules; CSV with BOM, formula guard and v1 quoting |
 | `UploadService` + `IFileStorage` | Signature sniffing, size limit, random names, private storage |
 | `IdPhotoService` + `IdPhotoRetentionService` | One ID card photo per booking (`stay_id_photos`, private storage); removed with the booking or room; a hosted job purges photos 90 days after check-out at start-up and daily |
+| `GuestFeedbackService` | Guest feedback (D-30): sealed per-booking link and QR code, the public form (`GuestFeedbackController`, one answer, `Feedback__LinkDays` after check-out), summary for the reports page |
 | `AuditService` | `audit_logs` rows with before/after JSON for create, update, delete, check_in, check_out; `RecordSystemAsync` for jobs (no user, IP `system`) |
 
 ## Data
@@ -74,6 +75,8 @@ compares stays that share a check-in date as a set and checks the replay's own o
   everyone changes their own password. Password rule: minimum length only (`Auth__PasswordMinLength`, default 10).
 - Per-IP failed-login throttle (5 in 15 min) plus Identity lockout; rate limits on login and writes.
 - Antiforgery on every non-GET request (`X-CSRF-Token` header / `_token` field).
+- The only anonymous pages are `/login`, the error pages and the guest feedback form `/feedback/{token}`, whose token
+  is the booking id sealed with Data Protection; that page shows no guest name or phone and its posts are rate-limited.
 - Ability policies: `admin` everything, `front_desk` everything but user management, `housekeeping` view/checkout/upload.
 - CSP with a per-request script nonce, `X-Frame-Options: DENY`, `nosniff`, `Referrer-Policy`, `Permissions-Policy`.
 - Uploads outside `wwwroot`, delivered only by `FilesController` after authorization, with `nosniff`. ID card photos

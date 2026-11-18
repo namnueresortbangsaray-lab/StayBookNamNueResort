@@ -340,4 +340,66 @@ public sealed class WebTests : IClassFixture<StayBookFactory>
         using var client = app.CreateBrowser();
         Assert.Equal("ok\n", await client.GetStringAsync("/health"));
     }
+
+    [Fact]
+    public async Task GuestsAnswerFeedbackThroughTheirLinkWithoutSigningIn()
+    {
+        using var admin = app.CreateBrowser();
+        var token = await Browser.SignInAsync(admin, StayBookFactory.AdminEmail, StayBookFactory.AdminPassword);
+        var roomId = await app.QueryAsync(db => db.Rooms.OrderBy(r => r.SortOrder).Select(r => r.Id).Skip(2).FirstAsync());
+        var created = await Browser.SendJsonAsync(admin, HttpMethod.Post, "/api/v1/stays", new
+        {
+            guest_name = "ทดสอบ แบบประเมิน",
+            phone = "0833333333",
+            room_id = roomId,
+            check_in_date = "2031-07-01",
+            check_out_date = "2031-07-03",
+            guests = 1,
+            id_verified = true,
+        }, token);
+        var stayId = (await Browser.EnvelopeAsync(created)).GetProperty("data").GetProperty("id").GetString();
+        Assert.Equal(HttpStatusCode.UnprocessableEntity, (await admin.GetAsync($"/api/v1/stays/{stayId}/feedback-link")).StatusCode);
+        Assert.Equal(HttpStatusCode.OK, (await Browser.SendJsonAsync(admin, HttpMethod.Post, $"/api/v1/stays/{stayId}/check-in", new { }, token)).StatusCode);
+        Assert.Equal(HttpStatusCode.OK, (await Browser.SendJsonAsync(admin, HttpMethod.Post, $"/api/v1/stays/{stayId}/checkout", new { no_damage = true }, token)).StatusCode);
+
+        var link = (await Browser.EnvelopeAsync(await admin.GetAsync($"/api/v1/stays/{stayId}/feedback-link"))).GetProperty("data");
+        var path = new Uri(link.GetProperty("url").GetString()!).AbsolutePath;
+        Assert.StartsWith("/feedback/", path, StringComparison.Ordinal);
+
+        using var guest = app.CreateBrowser();
+        Assert.Equal(HttpStatusCode.Unauthorized, (await Browser.SendJsonAsync(guest, HttpMethod.Get, $"/api/v1/stays/{stayId}/feedback-link", new { }, null)).StatusCode);
+        Assert.Equal(HttpStatusCode.NotFound, (await guest.GetAsync("/feedback/made-up")).StatusCode);
+
+        var page = await guest.GetAsync(path);
+        Assert.Equal(HttpStatusCode.OK, page.StatusCode);
+        Assert.True(page.Headers.CacheControl?.NoStore);
+        Assert.Contains("ความพึงพอใจโดยรวม", await page.Content.ReadAsStringAsync(), StringComparison.Ordinal);
+
+        var answer = new Dictionary<string, string>
+        {
+            ["overall_rating"] = "4",
+            ["cleanliness_rating"] = "5",
+            ["service_rating"] = "4",
+            ["facility_rating"] = "3",
+            ["would_return"] = "yes",
+            ["comment"] = "วิวสวย",
+        };
+        Assert.Equal((HttpStatusCode)419, (await guest.PostAsync(path, new FormUrlEncodedContent(answer))).StatusCode);
+
+        var csrf = await Browser.TokenAsync(guest, path);
+        var incomplete = await guest.PostAsync(path, new FormUrlEncodedContent(new Dictionary<string, string> { ["_token"] = csrf, ["overall_rating"] = "4" }));
+        Assert.Equal(HttpStatusCode.UnprocessableEntity, incomplete.StatusCode);
+        Assert.Contains("กรุณาเลือกคะแนน 1–5", await incomplete.Content.ReadAsStringAsync(), StringComparison.Ordinal);
+
+        var sent = await guest.PostAsync(path, new FormUrlEncodedContent(new Dictionary<string, string>(answer) { ["_token"] = csrf }));
+        Assert.Equal(HttpStatusCode.Redirect, sent.StatusCode);
+        Assert.Equal(path, sent.Headers.Location?.OriginalString);
+        Assert.Contains("ขอบคุณสำหรับคำแนะนำ", await guest.GetStringAsync(path), StringComparison.Ordinal);
+        Assert.Contains("Thank you for your feedback", await guest.GetStringAsync($"{path}?culture=en"), StringComparison.Ordinal);
+
+        var summary = (await Browser.EnvelopeAsync(await admin.GetAsync("/api/v1/feedback?start=2031-07-01&end=2031-07-31"))).GetProperty("data");
+        Assert.Equal(1, summary.GetProperty("response_count").GetInt32());
+        Assert.Equal("วิวสวย", summary.GetProperty("items")[0].GetProperty("comment").GetString());
+        Assert.True((await Browser.EnvelopeAsync(await admin.GetAsync($"/api/v1/stays/{stayId}/feedback-link"))).GetProperty("data").GetProperty("submitted").GetBoolean());
+    }
 }

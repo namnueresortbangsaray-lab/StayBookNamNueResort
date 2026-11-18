@@ -60,6 +60,7 @@ public static class ServiceCollectionExtensions
         services.Configure<StorageOptions>(configuration.GetSection("Storage"));
         services.Configure<UploadOptions>(o => o.MaxBytes = uploads.MaxBytes);
         services.Configure<IdPhotoOptions>(configuration.GetSection("IdPhotos"));
+        services.Configure<FeedbackOptions>(configuration.GetSection("Feedback"));
         services.Configure<AuthOptions>(o =>
         {
             o.SessionLifetimeMinutes = auth.SessionLifetimeMinutes;
@@ -137,6 +138,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<SnapshotService>();
         services.AddScoped<UploadService>();
         services.AddScoped<IdPhotoService>();
+        services.AddScoped<GuestFeedbackService>();
         services.AddHostedService<IdPhotoRetentionService>();
         services.AddScoped<DatabaseSeeder>();
         services.AddSingleton<IFileStorage, LocalFileStorage>();
@@ -220,6 +222,9 @@ public static class ServiceCollectionExtensions
         o.AddPolicy(RateLimitPolicies.Writes, context => RateLimitPartition.GetFixedWindowLimiter(
             context.User.Identity?.Name ?? context.ClientIp(),
             _ => new FixedWindowRateLimiterOptions { PermitLimit = 120, Window = TimeSpan.FromMinutes(1) }));
+        o.AddPolicy(RateLimitPolicies.Guest, context => RateLimitPartition.GetFixedWindowLimiter(
+            context.ClientIp(),
+            _ => new FixedWindowRateLimiterOptions { PermitLimit = 20, Window = TimeSpan.FromMinutes(1) }));
         o.OnRejected = (context, _) => ApiResults.IsApi(context.HttpContext.Request)
             ? new ValueTask(ApiResults.WriteAsync(context.HttpContext, StatusCodes.Status429TooManyRequests, "คำขอมากเกินไป กรุณาลองใหม่ภายหลัง"))
             : ValueTask.CompletedTask;

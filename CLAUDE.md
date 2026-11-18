@@ -51,8 +51,9 @@ One project, `StayBook.csproj` at the repository root (namespaces `StayBook.<Fol
   Keep `OnValidatePrincipal = SecurityStampValidator.ValidatePrincipalAsync` in the cookie events.
 - ID card photos (D-26) are personal data: only through `IdPhotoService`, never in `attachments`, the snapshot, logs
   or audit JSON (audit holds size and type only); keep `no-store`, the retention purge and deletion with booking/room.
-- Guest satisfaction feedback is not recorded by staff (D-24): no feedback endpoint or UI. The `feedbacks` table and
-  existing rows stay (read as `feedback_rating` / `average_feedback`) for a future guest-facing form.
+- Guest satisfaction feedback is never recorded by staff (D-24). Guests answer once through a sealed per-booking link
+  (D-30, `GuestFeedbackService`, public `/feedback/{token}`): keep that page free of guest names and phones, keep
+  `[AllowAnonymous]` only on `GuestFeedbackController`, and never add a staff endpoint that writes `feedbacks`.
 - `TreatWarningsAsErrors`, code style enforced in build, `dotnet format` clean. One type per file, file-scoped namespaces.
 - Every model change needs a migration in `Data/Migrations` (a test fails otherwise); never rename existing migration ids.
 - Rooms store zone/type names; `room_zones` / `room_types` only define the choices. Keep them in step through
@@ -101,7 +102,9 @@ Font Prompt (branch `font-prompt`, 2026-11-01). Booking channels (branch `bookin
 `booking_channel` on stays, fixed list in `BookingChannels`, reports breakdown; D-27. New stay columns must be appended
 to `StayDto`, added to `ADDED_KEYS` in `tests/baseline/compare.mjs` and left out of `DataSet.ReadV1StaysAsync`.
 Restructure (2026-11-18): one `StayBook` project at the root (layout above), PostgreSQL/Supabase removed (D-28),
-Railway config (`railway.json`, `Docs/RAILWAY.md`); 105 tests green. Repo: github.com/namnueresortbangsaray-lab/StayBookNamNueResort.
+Railway config (`railway.json`, `Docs/RAILWAY.md`); 105 tests green.
+Stay order (2026-11-18): ties on `check_in_date, created_at` break by SQLite `rowid` (`SqliteFunctions.RowId`).
+Guest feedback (2026-11-18, D-30): link + QR per checked-out booking, public form, reports card; 111 tests green. Repo: github.com/namnueresortbangsaray-lab/StayBookNamNueResort.
 
 ## Next steps
 - Optional: concurrency tokens if staff report conflicting edits; off-site copies of the daily backups.

@@ -11,6 +11,7 @@
 @layer components {
 
   .tone-text { color: rgb(var(--tone)); }
+  .tone-icon { @apply flex h-10 w-10 shrink-0 items-center justify-center rounded-full; color: rgb(var(--tone)); background: rgb(var(--tone-bg)); }
 
   .icon {
     width: 1rem;
@@ -91,6 +92,20 @@
   }
   .check-row:has(:checked) { @apply border-primary/50 bg-primary-subtle/50; }
   .check-row:has(:focus-visible) { outline: 2px solid rgb(var(--c-primary)); outline-offset: 2px; }
+  .check-row .form-radio { @apply h-4 w-4 border-control bg-raised text-primary; }
+  .fieldset-invalid .check-row { @apply border-danger; }
+
+  /* ---------- Rating scale (guest feedback): five radio buttons drawn as one row of buttons ---------- */
+  .rating { @apply grid grid-cols-5 gap-2; }
+  .rating-option {
+    @apply flex cursor-pointer items-center justify-center rounded border border-line-strong bg-raised text-base font-semibold tabular-nums text-ink-muted hover:border-control hover:text-ink;
+    height: max(var(--control-h), 2.75rem);
+    transition: background-color var(--motion-fast) ease, border-color var(--motion-fast) ease, color var(--motion-fast) ease;
+  }
+  .rating-option:has(:checked) { @apply border-primary bg-primary text-primary-on; }
+  .rating-option:has(:focus-visible) { outline: 2px solid rgb(var(--c-primary)); outline-offset: 2px; }
+  .fieldset-invalid .rating-option:not(:has(:checked)) { @apply border-danger; }
+  .rating-scale { @apply mt-1.5 flex justify-between gap-3 text-xs text-ink-subtle; }
 
   .switch {
     @apply relative inline-block h-5 w-9 shrink-0 cursor-pointer appearance-none rounded-full bg-control align-middle;

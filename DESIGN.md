@@ -131,7 +131,8 @@ and disabled styles.
 |---|---|---|
 | Button | `.btn` + `.btn-primary` · `-secondary` · `-ghost` · `-danger`, sizes `.btn-sm` `.btn-lg`, `.btn-icon`; `button()` | `setButtonLoading()` adds `.btn-spinner`, `aria-busy` and a label |
 | Field | `.label` (+ `.req`), `.field`, `.hint`, `.field-error` (filled from `[data-field-error]`), `.form-grid`, `.form-section` | Labels above inputs; errors with icon, linked by `aria-describedby` |
-| Checkbox / switch | `.check-row` + `.form-checkbox`, `.switch` | |
+| Checkbox / switch | `.check-row` + `.form-checkbox` (or `.form-radio`), `.switch` | `.fieldset-invalid` marks a fieldset with an error |
+| Rating scale | `fieldset` > `.rating` > `label.rating-option` (visually hidden radio + number + `sr-only` "n จาก 5"), `.rating-scale` | Guest feedback page (`/feedback/{token}`, `.guest-shell` + `.guest-card`); works without JavaScript |
 | Segmented control | `.segmented` + `.segmented-item[aria-pressed]` | Booking view, report range, theme on login |
 | Tabs | `.tabs` + `.tab[role=tab]`; `selectTab()` | Arrow keys, Home/End |
 | Pill / chip | `.pill.tone-*` (status: icon + text); `.chip[aria-pressed]` in `.chip-row` (filters with counts) | |

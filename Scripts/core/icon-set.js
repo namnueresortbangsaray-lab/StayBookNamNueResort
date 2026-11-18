@@ -66,5 +66,9 @@ export const ICONS = {
   success: 'circle-check',
   back: 'arrow-left',
   external: 'external-link',
+  globe: 'globe',
+  send: 'send',
+  copy: 'copy',
+  qr: 'qr-code',
   vacant: 'door-open',
 };

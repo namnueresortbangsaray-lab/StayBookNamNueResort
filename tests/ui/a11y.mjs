@@ -24,6 +24,33 @@ const pickIdPhoto = async page => {
   await page.locator('#booking-id-photo').setInputFiles(fileURLToPath(new URL('../baseline/fixtures/logo_square.webp', import.meta.url)));
   await page.locator('.id-photo-thumb:not([hidden])').scrollIntoViewIfNeeded();
 };
+// Guest feedback (D-30): the link of a checked-out booking without an answer (seed-demo.mjs creates some).
+const guestFeedbackPath = page => page.evaluate(async () => {
+  const get = async path => (await (await fetch(path, { headers: { Accept: 'application/json' } })).json()).data;
+  const stay = (await get('/api/v1/snapshot')).stays.find(s => Number(s.status) === 2 && s.feedback_rating == null);
+  if (!stay) throw new Error('No checked-out booking without feedback: run seed-demo.mjs first');
+  return { id: stay.id, path: new URL((await get(`/api/v1/stays/${stay.id}/feedback-link`)).url).pathname };
+});
+// The link dialog opens from a booking menu item; a temporary button sends the same data-action.
+const addFeedbackTrigger = async page => {
+  const { id } = await guestFeedbackPath(page);
+  await page.evaluate(stayId => {
+    const b = Object.assign(document.createElement('button'), { type: 'button', id: 'a11y-feedback-link', textContent: 'feedback link' });
+    Object.assign(b.dataset, { action: 'feedback-link', id: stayId });
+    b.style.cssText = 'position:fixed;left:0;bottom:0;z-index:2147483647;width:48px;height:48px';
+    document.body.append(b);
+  }, id);
+};
+const removeFeedbackTrigger = page => page.evaluate(() => document.querySelector('#a11y-feedback-link')?.remove());
+// The public guest page, empty and after sending it without answers (errors; nothing is saved).
+async function guestFeedbackPages(page, check) {
+  const { path } = await guestFeedbackPath(page);
+  await page.goto(`${base}${path}`);
+  await check('guest-feedback');
+  await page.locator('form button[type="submit"]').click();
+  await page.waitForLoadState();
+  await check('guest-feedback-errors');
+}
 const dialogs = [
   ['booking-form', 'today', '[data-action="new-booking"]:visible', '#booking-dialog'],
   ['booking-id-photo', 'today', '[data-action="new-booking"]:visible', '#booking-dialog', null, pickIdPhoto],
@@ -35,6 +62,7 @@ const dialogs = [
   ['type-form', 'rooms', '[data-action="new-type"]:visible', '#type-dialog', '#rooms-tab-types'],
   ['user-form', 'users', '[data-action="new-user"]:visible', '#user-dialog'],
   ['account-password', 'today', '[data-action="change-password"]:visible', '#account-password-dialog', openPhoneMenu],
+  ['feedback-link', 'bookings', '#a11y-feedback-link', '#feedback-link-dialog', addFeedbackTrigger, removeFeedbackTrigger],
 ];
 const violations = [];
 const layout = [];
@@ -135,6 +163,8 @@ for (const theme of ['light', 'dark']) {
     await page.locator('[data-action="command"]:visible').first().click();
     await page.locator('#command-dialog[open]').waitFor();
     await axe(page, label('command-palette'), '#command-dialog');
+    await page.keyboard.press('Escape');
+    await guestFeedbackPages(page, name => axe(page, label(name)));
     await page.goto(`${base}/does-not-exist`);
     await axe(page, label('error-404'));
     await page.context().close();
@@ -164,6 +194,8 @@ for (const width of [390, 507, 640, 678, 768, 1024, 1180, 1440]) {
     await openDialog(page, hash, trigger, dialog, tab, after);
     await sweep(page, `${width}/${name}`, touch);
   }
+  await closeAll(page);
+  await guestFeedbackPages(page, name => sweep(page, `${width}/${name}`, touch));
   await page.context().close();
 }
 await browser.close();

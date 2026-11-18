@@ -674,6 +674,34 @@
   </form>
 </dialog>
 
+<!-- Guest feedback link and QR code (D-30) -->
+<dialog id="feedback-link-dialog" class="modal [--dialog-w:28rem]" aria-labelledby="feedback-link-title">
+  <div class="dialog-header">
+    <div>
+      <h2 id="feedback-link-title" class="dialog-title">@T["ui.feedback_link.title"]</h2>
+      <p id="feedback-link-subtitle" class="dialog-sub"></p>
+    </div>
+    <button type="button" class="btn btn-ghost btn-icon" data-close aria-label="@T["ui.close"]"><icon name="close" /></button>
+  </div>
+  <div class="dialog-body space-y-4">
+    <p id="feedback-link-status" class="alert tone-success" hidden><icon name="check" /><span>@T["ui.feedback_link.submitted"]</span></p>
+    <p class="text-sm text-ink-muted">@T["ui.feedback_link.intro"]</p>
+    <img id="feedback-link-qr" class="qr-image" alt="@T["ui.feedback_link.qr_alt"]" width="224" height="224">
+    <div>
+      <label class="label" for="feedback-link-url">@T["ui.feedback_link.url"]</label>
+      <div class="flex gap-2">
+        <input id="feedback-link-url" class="field min-w-0 flex-1" type="text" readonly aria-describedby="feedback-link-expires">
+        <button type="button" class="btn btn-secondary shrink-0" data-action="copy-feedback-link"><icon name="copy" /><span>@T["ui.feedback_link.copy"]</span></button>
+      </div>
+      <p id="feedback-link-expires" class="hint"></p>
+    </div>
+  </div>
+  <div class="dialog-actions">
+    <a id="feedback-link-open" class="btn btn-ghost" href="#" target="_blank" rel="noopener noreferrer"><icon name="external" /><span>@T["ui.feedback_link.open"]</span></a>
+    <button type="button" class="btn btn-primary" data-close>@T["ui.close"]</button>
+  </div>
+</dialog>
+
 <!-- Guest profile drawer -->
 <dialog id="guest-dialog" class="drawer [--dialog-w:44rem]" aria-labelledby="guest-dialog-title">
   <form id="guest-form" novalidate data-guard>

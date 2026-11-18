@@ -1386,4 +1386,169 @@
   <data name="ui.reports.channels_empty" xml:space="preserve">
     <value>No bookings start in this range</value>
   </data>
+  <data name="ui.guest_feedback.page_title" xml:space="preserve">
+    <value>Guest feedback</value>
+  </data>
+  <data name="ui.guest_feedback.title" xml:space="preserve">
+    <value>Thank you for staying with us</value>
+  </data>
+  <data name="ui.guest_feedback.intro" xml:space="preserve">
+    <value>Tell us how your stay went. It takes less than a minute.</value>
+  </data>
+  <data name="ui.guest_feedback.stay" xml:space="preserve">
+    <value>Room {room} · {from} – {to}</value>
+  </data>
+  <data name="ui.guest_feedback.required_note" xml:space="preserve">
+    <value>Questions marked * are required</value>
+  </data>
+  <data name="ui.guest_feedback.q.overall_rating" xml:space="preserve">
+    <value>Overall satisfaction</value>
+  </data>
+  <data name="ui.guest_feedback.q.cleanliness_rating" xml:space="preserve">
+    <value>Room cleanliness</value>
+  </data>
+  <data name="ui.guest_feedback.q.service_rating" xml:space="preserve">
+    <value>Staff service</value>
+  </data>
+  <data name="ui.guest_feedback.q.facility_rating" xml:space="preserve">
+    <value>Facilities</value>
+  </data>
+  <data name="ui.guest_feedback.scale_low" xml:space="preserve">
+    <value>1 = poor</value>
+  </data>
+  <data name="ui.guest_feedback.scale_high" xml:space="preserve">
+    <value>5 = excellent</value>
+  </data>
+  <data name="ui.guest_feedback.score" xml:space="preserve">
+    <value>{n} out of 5</value>
+  </data>
+  <data name="ui.guest_feedback.would_return" xml:space="preserve">
+    <value>Would you stay with us again?</value>
+  </data>
+  <data name="ui.guest_feedback.yes" xml:space="preserve">
+    <value>Yes</value>
+  </data>
+  <data name="ui.guest_feedback.no" xml:space="preserve">
+    <value>Not sure</value>
+  </data>
+  <data name="ui.guest_feedback.comment" xml:space="preserve">
+    <value>Comments or suggestions (optional)</value>
+  </data>
+  <data name="ui.guest_feedback.comment_hint" xml:space="preserve">
+    <value>Up to 1,000 characters</value>
+  </data>
+  <data name="ui.guest_feedback.submit" xml:space="preserve">
+    <value>Send feedback</value>
+  </data>
+  <data name="ui.guest_feedback.privacy" xml:space="preserve">
+    <value>Your answers go only to the resort team and can be sent once.</value>
+  </data>
+  <data name="ui.guest_feedback.errors_title" xml:space="preserve">
+    <value>Please complete the form</value>
+  </data>
+  <data name="ui.guest_feedback.error.rating" xml:space="preserve">
+    <value>Please choose a score from 1 to 5</value>
+  </data>
+  <data name="ui.guest_feedback.error.would_return" xml:space="preserve">
+    <value>Please choose an answer</value>
+  </data>
+  <data name="ui.guest_feedback.error.comment" xml:space="preserve">
+    <value>Please keep it under 1,000 characters</value>
+  </data>
+  <data name="ui.guest_feedback.thanks_title" xml:space="preserve">
+    <value>Thank you for your feedback</value>
+  </data>
+  <data name="ui.guest_feedback.thanks_body" xml:space="preserve">
+    <value>We have received your answers and hope to welcome you again.</value>
+  </data>
+  <data name="ui.guest_feedback.not_ready_title" xml:space="preserve">
+    <value>Feedback opens after check-out</value>
+  </data>
+  <data name="ui.guest_feedback.not_ready_body" xml:space="preserve">
+    <value>Please open this link again after you check out.</value>
+  </data>
+  <data name="ui.guest_feedback.expired_title" xml:space="preserve">
+    <value>This feedback link has expired</value>
+  </data>
+  <data name="ui.guest_feedback.expired_body" xml:space="preserve">
+    <value>Answers could be sent until {date}. Thank you for staying with us.</value>
+  </data>
+  <data name="ui.guest_feedback.not_found_title" xml:space="preserve">
+    <value>Feedback link not found</value>
+  </data>
+  <data name="ui.guest_feedback.not_found_body" xml:space="preserve">
+    <value>The link may be incomplete. Please scan the QR code or open the link you received again.</value>
+  </data>
+  <data name="ui.guest_feedback.switch_language" xml:space="preserve">
+    <value>ภาษาไทย</value>
+  </data>
+  <data name="ui.guest_feedback.switch_culture" xml:space="preserve">
+    <value>th-TH</value>
+  </data>
+  <data name="ui.feedback_link.action" xml:space="preserve">
+    <value>Guest feedback link</value>
+  </data>
+  <data name="ui.feedback_link.title" xml:space="preserve">
+    <value>Guest feedback</value>
+  </data>
+  <data name="ui.feedback_link.intro" xml:space="preserve">
+    <value>Let the guest scan the QR code or send them the link, for example by LINE. Guests answer once, without signing in.</value>
+  </data>
+  <data name="ui.feedback_link.url" xml:space="preserve">
+    <value>Feedback link</value>
+  </data>
+  <data name="ui.feedback_link.copy" xml:space="preserve">
+    <value>Copy link</value>
+  </data>
+  <data name="ui.feedback_link.copied" xml:space="preserve">
+    <value>Link copied</value>
+  </data>
+  <data name="ui.feedback_link.open" xml:space="preserve">
+    <value>Open link</value>
+  </data>
+  <data name="ui.feedback_link.expires" xml:space="preserve">
+    <value>Guests can answer until {date}</value>
+  </data>
+  <data name="ui.feedback_link.submitted" xml:space="preserve">
+    <value>The guest has already answered</value>
+  </data>
+  <data name="ui.feedback_link.qr_alt" xml:space="preserve">
+    <value>QR code for the feedback link</value>
+  </data>
+  <data name="ui.reports.feedback_title" xml:space="preserve">
+    <value>Guest satisfaction</value>
+  </data>
+  <data name="ui.reports.feedback_sub" xml:space="preserve">
+    <value>From guests’ own answers, for bookings that start in this range</value>
+  </data>
+  <data name="ui.reports.feedback_overall" xml:space="preserve">
+    <value>Overall score</value>
+  </data>
+  <data name="ui.reports.feedback_responses" xml:space="preserve">
+    <value>Answers</value>
+  </data>
+  <data name="ui.reports.feedback_rate" xml:space="preserve">
+    <value>{n} of {total} checked-out bookings</value>
+  </data>
+  <data name="ui.reports.feedback_return" xml:space="preserve">
+    <value>Would stay again</value>
+  </data>
+  <data name="ui.reports.feedback_score" xml:space="preserve">
+    <value>{n} / 5</value>
+  </data>
+  <data name="ui.reports.feedback_topics" xml:space="preserve">
+    <value>Average score by topic</value>
+  </data>
+  <data name="ui.reports.feedback_answers" xml:space="preserve">
+    <value>Guest answers</value>
+  </data>
+  <data name="ui.reports.feedback_comment" xml:space="preserve">
+    <value>Comment</value>
+  </data>
+  <data name="ui.reports.feedback_answered" xml:space="preserve">
+    <value>Answered</value>
+  </data>
+  <data name="ui.reports.feedback_empty" xml:space="preserve">
+    <value>No guest has answered for this range yet. Send the link from the menu of a checked-out booking.</value>
+  </data>
 </root>

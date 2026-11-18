@@ -1386,4 +1386,169 @@
   <data name="ui.reports.channels_empty" xml:space="preserve">
     <value>ไม่มี Booking ที่เช็กอินในช่วงนี้</value>
   </data>
+  <data name="ui.guest_feedback.page_title" xml:space="preserve">
+    <value>แบบประเมินความพึงพอใจ</value>
+  </data>
+  <data name="ui.guest_feedback.title" xml:space="preserve">
+    <value>ขอบคุณที่มาพักกับเรา</value>
+  </data>
+  <data name="ui.guest_feedback.intro" xml:space="preserve">
+    <value>ช่วยบอกเราว่าการเข้าพักครั้งนี้เป็นอย่างไร ใช้เวลาไม่ถึง 1 นาที</value>
+  </data>
+  <data name="ui.guest_feedback.stay" xml:space="preserve">
+    <value>ห้อง {room} · {from} – {to}</value>
+  </data>
+  <data name="ui.guest_feedback.required_note" xml:space="preserve">
+    <value>ข้อที่มีเครื่องหมาย * ต้องตอบ</value>
+  </data>
+  <data name="ui.guest_feedback.q.overall_rating" xml:space="preserve">
+    <value>ความพึงพอใจโดยรวม</value>
+  </data>
+  <data name="ui.guest_feedback.q.cleanliness_rating" xml:space="preserve">
+    <value>ความสะอาดของห้องพัก</value>
+  </data>
+  <data name="ui.guest_feedback.q.service_rating" xml:space="preserve">
+    <value>การบริการของพนักงาน</value>
+  </data>
+  <data name="ui.guest_feedback.q.facility_rating" xml:space="preserve">
+    <value>สิ่งอำนวยความสะดวก</value>
+  </data>
+  <data name="ui.guest_feedback.scale_low" xml:space="preserve">
+    <value>1 = ต้องปรับปรุง</value>
+  </data>
+  <data name="ui.guest_feedback.scale_high" xml:space="preserve">
+    <value>5 = ดีมาก</value>
+  </data>
+  <data name="ui.guest_feedback.score" xml:space="preserve">
+    <value>{n} จาก 5</value>
+  </data>
+  <data name="ui.guest_feedback.would_return" xml:space="preserve">
+    <value>อยากกลับมาพักที่นี่อีกไหม</value>
+  </data>
+  <data name="ui.guest_feedback.yes" xml:space="preserve">
+    <value>กลับมาอีกแน่นอน</value>
+  </data>
+  <data name="ui.guest_feedback.no" xml:space="preserve">
+    <value>ยังไม่แน่ใจ</value>
+  </data>
+  <data name="ui.guest_feedback.comment" xml:space="preserve">
+    <value>คำชมหรือข้อเสนอแนะ (ไม่บังคับ)</value>
+  </data>
+  <data name="ui.guest_feedback.comment_hint" xml:space="preserve">
+    <value>ไม่เกิน 1,000 ตัวอักษร</value>
+  </data>
+  <data name="ui.guest_feedback.submit" xml:space="preserve">
+    <value>ส่งแบบประเมิน</value>
+  </data>
+  <data name="ui.guest_feedback.privacy" xml:space="preserve">
+    <value>คำตอบส่งถึงทีมงานรีสอร์ทเท่านั้น และส่งได้ครั้งเดียว</value>
+  </data>
+  <data name="ui.guest_feedback.errors_title" xml:space="preserve">
+    <value>กรุณาตอบให้ครบก่อนส่ง</value>
+  </data>
+  <data name="ui.guest_feedback.error.rating" xml:space="preserve">
+    <value>กรุณาเลือกคะแนน 1–5</value>
+  </data>
+  <data name="ui.guest_feedback.error.would_return" xml:space="preserve">
+    <value>กรุณาเลือกคำตอบ</value>
+  </data>
+  <data name="ui.guest_feedback.error.comment" xml:space="preserve">
+    <value>ข้อความยาวเกิน 1,000 ตัวอักษร</value>
+  </data>
+  <data name="ui.guest_feedback.thanks_title" xml:space="preserve">
+    <value>ขอบคุณสำหรับคำแนะนำ</value>
+  </data>
+  <data name="ui.guest_feedback.thanks_body" xml:space="preserve">
+    <value>ทีมงานได้รับแบบประเมินของคุณแล้ว หวังว่าจะได้ต้อนรับอีกครั้ง</value>
+  </data>
+  <data name="ui.guest_feedback.not_ready_title" xml:space="preserve">
+    <value>ยังส่งแบบประเมินไม่ได้</value>
+  </data>
+  <data name="ui.guest_feedback.not_ready_body" xml:space="preserve">
+    <value>แบบประเมินจะเปิดให้ตอบหลังเช็กเอาต์ กรุณาเปิดลิงก์นี้อีกครั้งภายหลัง</value>
+  </data>
+  <data name="ui.guest_feedback.expired_title" xml:space="preserve">
+    <value>หมดเวลาส่งแบบประเมินแล้ว</value>
+  </data>
+  <data name="ui.guest_feedback.expired_body" xml:space="preserve">
+    <value>แบบประเมินนี้ตอบได้ถึง {date} ขอบคุณที่แวะมาพักกับเรา</value>
+  </data>
+  <data name="ui.guest_feedback.not_found_title" xml:space="preserve">
+    <value>ไม่พบแบบประเมินนี้</value>
+  </data>
+  <data name="ui.guest_feedback.not_found_body" xml:space="preserve">
+    <value>ลิงก์อาจไม่ครบหรือพิมพ์ผิด กรุณาสแกน QR หรือเปิดลิงก์ที่ได้รับอีกครั้ง</value>
+  </data>
+  <data name="ui.guest_feedback.switch_language" xml:space="preserve">
+    <value>English</value>
+  </data>
+  <data name="ui.guest_feedback.switch_culture" xml:space="preserve">
+    <value>en</value>
+  </data>
+  <data name="ui.feedback_link.action" xml:space="preserve">
+    <value>ลิงก์แบบประเมินสำหรับลูกค้า</value>
+  </data>
+  <data name="ui.feedback_link.title" xml:space="preserve">
+    <value>แบบประเมินความพึงพอใจของลูกค้า</value>
+  </data>
+  <data name="ui.feedback_link.intro" xml:space="preserve">
+    <value>ให้ลูกค้าสแกน QR หรือส่งลิงก์ให้ทาง LINE ลูกค้าตอบได้ครั้งเดียวโดยไม่ต้องเข้าสู่ระบบ</value>
+  </data>
+  <data name="ui.feedback_link.url" xml:space="preserve">
+    <value>ลิงก์แบบประเมิน</value>
+  </data>
+  <data name="ui.feedback_link.copy" xml:space="preserve">
+    <value>คัดลอกลิงก์</value>
+  </data>
+  <data name="ui.feedback_link.copied" xml:space="preserve">
+    <value>คัดลอกลิงก์แล้ว</value>
+  </data>
+  <data name="ui.feedback_link.open" xml:space="preserve">
+    <value>เปิดลิงก์</value>
+  </data>
+  <data name="ui.feedback_link.expires" xml:space="preserve">
+    <value>ลูกค้าตอบได้ถึง {date}</value>
+  </data>
+  <data name="ui.feedback_link.submitted" xml:space="preserve">
+    <value>ลูกค้าส่งแบบประเมินแล้ว</value>
+  </data>
+  <data name="ui.feedback_link.qr_alt" xml:space="preserve">
+    <value>QR code ของลิงก์แบบประเมิน</value>
+  </data>
+  <data name="ui.reports.feedback_title" xml:space="preserve">
+    <value>ความพึงพอใจของลูกค้า</value>
+  </data>
+  <data name="ui.reports.feedback_sub" xml:space="preserve">
+    <value>จากแบบประเมินที่ลูกค้าตอบเอง ของ Booking ที่เช็กอินในช่วงนี้</value>
+  </data>
+  <data name="ui.reports.feedback_overall" xml:space="preserve">
+    <value>คะแนนโดยรวม</value>
+  </data>
+  <data name="ui.reports.feedback_responses" xml:space="preserve">
+    <value>ลูกค้าที่ตอบ</value>
+  </data>
+  <data name="ui.reports.feedback_rate" xml:space="preserve">
+    <value>{n} จาก {total} Booking ที่เช็กเอาต์</value>
+  </data>
+  <data name="ui.reports.feedback_return" xml:space="preserve">
+    <value>อยากกลับมาพักอีก</value>
+  </data>
+  <data name="ui.reports.feedback_score" xml:space="preserve">
+    <value>{n} / 5</value>
+  </data>
+  <data name="ui.reports.feedback_topics" xml:space="preserve">
+    <value>คะแนนเฉลี่ยแต่ละด้าน</value>
+  </data>
+  <data name="ui.reports.feedback_answers" xml:space="preserve">
+    <value>คำตอบจากลูกค้า</value>
+  </data>
+  <data name="ui.reports.feedback_comment" xml:space="preserve">
+    <value>ความคิดเห็น</value>
+  </data>
+  <data name="ui.reports.feedback_answered" xml:space="preserve">
+    <value>วันที่ตอบ</value>
+  </data>
+  <data name="ui.reports.feedback_empty" xml:space="preserve">
+    <value>ยังไม่มีลูกค้าตอบแบบประเมินสำหรับช่วงนี้ ส่งลิงก์ได้จากเมนูของ Booking ที่เช็กเอาต์แล้ว</value>
+  </data>
 </root>

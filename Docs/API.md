@@ -55,6 +55,9 @@ Checks run in this order: 401 → 419 → 403 → 422/404/409.
 | PUT | `/api/v1/users/{id}` | manage_users | Update `name, email, role, active` (accounts are deactivated, never deleted) |
 | POST | `/api/v1/users/{id}/password` | manage_users | Set a new password (`password`, `confirm_password`); also lifts a sign-in lockout |
 | POST | `/api/v1/account/password` | any (signed in) | Change own password: `current_password`, `password`, `confirm_password` |
+| GET | `/api/v1/stays/{id}/feedback-link` | checkout | Guest feedback link for a checked-out booking: `stay_id, url, qr_png, expires_on, submitted` (`qr_png` is a PNG data URI); 422 before check-out or after the answer period |
+| GET | `/api/v1/feedback?start=&end=` | any | Guest answers for bookings that start in the range (validated like the snapshot): counts, averages, `items` newest first |
+| GET / POST | `/feedback/{token}` | none (public) | Guest feedback page (HTML form, antiforgery `_token`); 404 for an unknown link |
 
 ID card photos are deleted automatically `IdPhotos__RetentionDays` (90) days after check-out, and with their booking or room.
 
@@ -69,7 +72,7 @@ in, `2` checked out. Checkout takes `key_returned`, `room_clean`, `equipment_com
 and requires `inspection_note` when `no_damage` is false.
 
 Staff do not record guest feedback (deviation D-24): `POST /api/v1/stays/{id}/feedback` was removed and answers 404.
-Feedback already stored (for example imported from v1) is still returned as `feedback_rating` on stays and
+Guests answer themselves through a link (D-30, below). Stored feedback is returned as `feedback_rating` on stays and
 `average_feedback` in the snapshot analytics.
 
 ## Output
@@ -101,3 +104,19 @@ change their own role or deactivate themselves (422), and the last active admin 
 user's other sessions end at the next check (every `Auth__SessionCheckSeconds`, default 60); changing your own
 password keeps the current session. Duplicate email: 409. Audit entity type `user` (`create`, `update`, `password`),
 without hashes.
+
+## Guest feedback (added after v1)
+
+Guests rate their stay themselves (D-30). After check-out, staff with the `checkout` ability open the booking's link
+(`GET /api/v1/stays/{id}/feedback-link`; the dashboard shows it with a QR code right after check-out and in the booking
+menu) and the guest opens it on their phone without signing in. The token in `/feedback/{token}` is the booking id
+sealed with ASP.NET Core Data Protection (purpose `StayBook.GuestFeedback.v1`, keys in `Storage__KeysPath`): nothing is
+stored for it, it cannot be guessed or altered, and losing the key ring invalidates open links.
+
+The page asks four ratings 1–5 (`overall_rating`, `cleanliness_rating`, `service_rating`, `facility_rating`),
+`would_return` (`yes`/`no`) and an optional `comment` (≤ 1000 characters); errors are shown inline (422) in Thai or,
+with `?culture=en`, English. One answer per booking (`feedbacks.stay_id` is unique): later posts show the thank-you
+page. The link works until `Feedback__LinkDays` (30) days after the check-out date; before check-out or later the page
+says so. `Feedback__PublicBaseUrl` sets the address used in links (otherwise the one staff use, which only works for
+guests on the resort network). Posts are limited to 20 per minute per IP. Audit: action `feedback` on `stay`, no user,
+the guest's IP. The page sends `Cache-Control: no-store` and `X-Robots-Tag: noindex`, and names only the room and dates.
