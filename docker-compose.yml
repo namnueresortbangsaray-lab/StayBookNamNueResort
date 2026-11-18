@@ -7,7 +7,7 @@ name: stay-book
 x-app: &app
   build:
     context: .
-    dockerfile: docker/Dockerfile
+    dockerfile: Dockerfile
   image: staybook-web:latest
   env_file: .env
   environment:
@@ -53,7 +53,7 @@ services:
   # machine as well (see README, Backup and restore).
   backup:
     <<: *app
-    entrypoint: ["bash", "-c", "while true; do dotnet ResortGuestbook.Web.dll db:backup; sleep \"${BACKUP_INTERVAL_SECONDS:-86400}\"; done"]
+    entrypoint: ["bash", "-c", "while true; do dotnet StayBook.dll db:backup; sleep \"${BACKUP_INTERVAL_SECONDS:-86400}\"; done"]
     restart: unless-stopped
     healthcheck:
       disable: true
@@ -61,28 +61,9 @@ services:
       web:
         condition: service_healthy
 
-  # Local PostgreSQL 15 for testing the Supabase provider: docker compose --profile pgtest up -d postgres
-  postgres:
-    image: postgres:15-alpine
-    profiles: ["pgtest"]
-    environment:
-      POSTGRES_DB: ${SUPABASE_DB_NAME:-postgres}
-      POSTGRES_USER: ${SUPABASE_DB_USER:-postgres}
-      POSTGRES_PASSWORD: ${SUPABASE_DB_PASSWORD:-postgres}
-    ports:
-      - "127.0.0.1:${PG_PORT:-5432}:5432"
-    volumes:
-      - staybook_postgres:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
-      interval: 5s
-      timeout: 5s
-      retries: 10
-
 volumes:
   staybook_database:
   staybook_uploads:
   staybook_backups:
   staybook_logs:
   staybook_keys:
-  staybook_postgres:

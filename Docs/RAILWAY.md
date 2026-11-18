@@ -1,6 +1,6 @@
 # Running Stay Book on Railway
 
-Railway builds `docker/Dockerfile` from GitHub (settings in `railway.json`), runs one container and keeps SQLite,
+Railway builds `Dockerfile` from GitHub (settings in `railway.json`), runs one container and keeps SQLite,
 uploads, ID card photos, logs and data-protection keys on one volume mounted at `/app/storage` (the app's default
 paths all live there). Rehearsed locally on 2026-11-18 with a root-owned volume, a proxy header and a redeploy.
 

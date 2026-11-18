@@ -137,7 +137,7 @@ docker compose up -d --build
 สร้างผู้ใช้ใหม่จากคอนเทนเนอร์ web:
 
 ```bash
-docker compose exec web dotnet ResortGuestbook.Web.dll user:create --name="ชื่อพนักงาน" --email="staff@example.com" --password="รหัสผ่านที่ปลอดภัย" --role=front_desk
+docker compose exec web dotnet StayBook.dll user:create --name="ชื่อพนักงาน" --email="staff@example.com" --password="รหัสผ่านที่ปลอดภัย" --role=front_desk
 ```
 
 ค่าของ `--role` ใช้ `admin`, `front_desk` หรือ `housekeeping`
@@ -147,7 +147,7 @@ docker compose exec web dotnet ResortGuestbook.Web.dll user:create --name="ช�
 สร้างสำเนาฐานข้อมูล SQLite แบบออนไลน์ด้วยคำสั่ง:
 
 ```bash
-docker compose exec web dotnet ResortGuestbook.Web.dll db:backup
+docker compose exec web dotnet StayBook.dll db:backup
 ```
 
 ระบบเก็บสำเนาล่าสุดตามจำนวน `BACKUP_KEEP` ใน `.env` ควรสำรอง Docker volume ของไฟล์แนบควบคู่กับฐานข้อมูลเสมอ เพราะฐานข้อมูลและไฟล์แนบอยู่คนละ volume
@@ -171,6 +171,5 @@ docker compose ps               # ดูสถานะคอนเทนเน�
 - **เข้าสู่ระบบไม่ได้** — ตรวจสอบอีเมล/รหัสผ่าน หากลองผิดครบ 5 ครั้ง ต้องรอ 15 นาที
 - **ไม่พบไฟล์ CSS/JavaScript** — รัน `docker compose up -d --build` เพื่อสร้าง assets ใหม่
 - **ฐานข้อมูลถูกล็อก** — ตรวจสอบสิทธิ์เขียนของ volume และโฟลเดอร์ `storage/database`; ระบบเปิด WAL และกำหนด busy timeout ไว้แล้ว
-- **PostgreSQL/Supabase เชื่อมต่อไม่ได้** — ตรวจสอบ host, port, รหัสผ่าน, TLS และค่า prepared statements ตามชนิด pooler
 
-รายละเอียดสำหรับผู้ดูแลระบบเพิ่มเติมอยู่ใน [คู่มือติดตั้งและนำขึ้นระบบ](DEPLOYMENT.md) และ [คู่มือย้ายไป Supabase](SUPABASE.md)
+รายละเอียดสำหรับผู้ดูแลระบบเพิ่มเติมอยู่ใน [คู่มือติดตั้งและนำขึ้นระบบ](DEPLOYMENT.md) และ [คู่มือทดลองบน Railway](RAILWAY.md)

@@ -1,9 +1,9 @@
 # Design system — Stay Book
 
 A flat, clean blue-and-white back-office UI for front-desk and housekeeping staff at น้ำเหนือรีสอร์ท บางเสร่, in light
-and dark, on phones, iPads and desktops. Screenshots: `docs/design/after-skill/{light,dark}/{390,768,1024,1440}/`
+and dark, on phones, iPads and desktops. Screenshots: `Docs/design/after-skill/{light,dark}/{390,768,1024,1440}/`
 (including loading, failure, validation, print and error-page states; earlier states in `before-skill/` and `before/`).
-Audits: `docs/design/UI_AUDIT.md` and `docs/design/SKILL_AUDIT.md` (ui-ux-pro-max review, findings SA-01…SA-16).
+Audits: `Docs/design/UI_AUDIT.md` and `Docs/design/SKILL_AUDIT.md` (ui-ux-pro-max review, findings SA-01…SA-16).
 
 ## Principles
 
@@ -19,7 +19,7 @@ Audits: `docs/design/UI_AUDIT.md` and `docs/design/SKILL_AUDIT.md` (ui-ux-pro-ma
 
 ## Tokens
 
-Defined once in `src/ResortGuestbook.Web/Styles/tokens.css` as RGB channels (`--c-name: r g b`) and mapped in
+Defined once in `Styles/tokens.css` as RGB channels (`--c-name: r g b`) and mapped in
 `tailwind.config.js` as `rgb(var(--c-name) / <alpha-value>)`, so `bg-surface`, `text-ink-muted`, `border-line`,
 `bg-primary/10` all work. **Never use a hex value or a Tailwind palette colour in markup**; the palette is replaced,
 not extended, so `text-gray-500` does not exist.
@@ -197,6 +197,6 @@ and disabled styles.
 4. **Icons:** add the mapping to `Scripts/core/icon-set.js`; the sprite is rebuilt by `npm run build`.
 5. **Behaviour hooks:** keep `id`, `name`, `data-action` and `data-id` attributes stable; JS and the baseline contract
    tests depend on them. No inline event handlers or inline scripts without the nonce.
-6. **Check:** `npm --prefix src/ResortGuestbook.Web run build`, `dotnet test`, then against a running instance
+6. **Check:** `npm run build`, `dotnet test`, then against a running instance
    `node tests/ui/a11y.mjs` and `node tests/ui/screenshots.mjs <dir> light,dark 390,768,1024,1440`; look at the
    screenshots in both themes at every width.

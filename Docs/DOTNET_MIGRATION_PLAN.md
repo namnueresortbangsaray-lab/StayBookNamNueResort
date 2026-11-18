@@ -1,6 +1,6 @@
 # PHP → ASP.NET Core migration plan
 
-Source: tag `php-original` (see `docs/PROJECT_KNOWLEDGE.md`, `tests/baseline/`). Target: ASP.NET Core MVC on .NET 10 (SDK 10.0.403
+Source: tag `php-original` (see `Docs/PROJECT_KNOWLEDGE.md`, `tests/baseline/`). Target: ASP.NET Core MVC on .NET 10 (SDK 10.0.403
 installed locally), EF Core 10 with SQLite (default) and PostgreSQL/Supabase, Identity cookie auth, Razor, Tailwind CLI, Docker.
 The solution keeps the requested name `ResortGuestbook`; the product shown to users stays "Stay Book".
 
@@ -24,7 +24,7 @@ The solution keeps the requested name `ResortGuestbook`; the product shown to us
 | `Transfer` | `Infrastructure/Cli/DbTransferCommand` (EF, both providers) |
 | `Backup` | `Infrastructure/Cli/DbBackupCommand` (`VACUUM INTO`) |
 | `ImportFlutterCommand` | dropped (it only printed an error); replaced by `import:php` |
-| `bin/console` | `dotnet ResortGuestbook.Web.dll <command>` (`Infrastructure/Cli/CliRunner`, before host start) |
+| `bin/console` | `dotnet StayBook.dll <command>` (`Infrastructure/Cli/CliRunner`, before host start) |
 | `views/*.php` | Razor: `Views/Shared/_Layout`, `_AuthLayout`, `Views/Auth/Login`, `Views/Dashboard/Index`, `Views/Shared/Error` (+ `StatusCodes`) |
 | `resources/lang/*/messages.php` | `Resources/SharedResource.th.resx` / `.en.resx`, `IViewLocalizer`, default culture `th-TH` with Gregorian calendar |
 | `resources/js`, `resources/css`, `scripts/build.mjs` | `Scripts/`, `Styles/app.css` → `wwwroot/js/app.js`, `wwwroot/css/app.css` (esbuild + Tailwind CLI), `asp-append-version` |
@@ -33,7 +33,7 @@ The solution keeps the requested name `ResortGuestbook`; the product shown to us
 | `Logger` | Serilog (console + rolling file `storage/logs`) |
 | nginx `/health` | `MapHealthChecks("/health")` with `DbContext` check, body `ok` |
 | nginx security headers | `SecurityHeadersMiddleware` (same headers, nonce-based `script-src`) + nginx in prod |
-| PHP-FPM/nginx compose | `docker/Dockerfile` (node → sdk → aspnet), `docker-compose*.yml`, `docker/nginx/default.conf` (prod) |
+| PHP-FPM/nginx compose | `Dockerfile` (node → sdk → aspnet), `docker-compose*.yml`, `nginx/default.conf` (prod) |
 | PHPUnit | xUnit (`tests/ResortGuestbook.Tests`), Testcontainers PostgreSQL |
 
 ## 2. Data model decisions
@@ -130,9 +130,11 @@ Status: ☑ done and verified (unit, integration and contract tests; Docker smok
 | D-19 | `user:create` crashed on a duplicate email | prints an error and exits 1 | clearer CLI; other CLI failures also print one line instead of a stack trace |
 | D-20 | prompt suggested header `RequestVerificationToken` | header stays `X-CSRF-Token` | API compatibility; the JavaScript is unchanged |
 | D-21 | no Thai normalizer existed | search reproduces `LOWER() LIKE` / `ILIKE` without a normalized column | nothing to port; Thai has no letter case |
-| D-22 | dashboard shell copy (section labels, dialog subtitles) | redesigned interface copy from the resx files; titles, element ids and login/error text unchanged | UI redesign (docs/DESIGN_SYSTEM.md); recorded in tests/baseline/deviations.json |
+| D-22 | dashboard shell copy (section labels, dialog subtitles) | redesigned interface copy from the resx files; titles, element ids and login/error text unchanged | UI redesign (DESIGN.md); recorded in tests/baseline/deviations.json |
 | D-23 | free-text room zone and type | managed `room_zones` / `room_types` lists (migration `AddRoomCategories`, both providers); rooms keep the names, new endpoints `/api/v1/room-categories`, `/room-zones`, `/room-types` | feature added after the migration; v1 endpoints and contract unchanged |
 | D-24 | staff record guest feedback (`POST /api/v1/stays/{id}/feedback`, rating form, average in reports) | endpoint and UI removed (404); `feedbacks` table and existing rows kept and still read | feedback is for guests to give, not staff; the table stays for a future guest-facing form. Recorded in `tests/baseline/deviations.json` |
+| D-29 | – | one project `StayBook.csproj` at the repository root: `Context/`, `Data/` (migrations, seed, import), `Models/`, `Helpers/`, `Controllers/`, `Services/`, `Views/`…; tests in `tests/StayBook.Tests`, docs in `Docs/` | requested layout (2026-11-18); possible once D-28 left one migrations set. Migration ids unchanged, so existing databases need nothing. Paths in sections 1–4 are as they were at the migration |
+| D-28 | SQLite or PostgreSQL (Supabase) | SQLite only: Postgres migrations, Npgsql, `db:transfer`, the `pgtest` compose profile and Testcontainers removed; a `Database:Provider` other than sqlite fails at start-up | the resort runs on one machine with SQLite and chose to stay on it; one provider keeps the code and tests simple |
 | D-27 | no record of how a booking came in | optional `stays.booking_channel` (migration `AddBookingChannel`, both providers), validated against a fixed list; booking form select, bookings table column, reports breakdown | requested feature; the field is appended to stay rows, `compare.mjs` ignores it (`ADDED_KEYS`), every other field is still compared; `import:php` reads v1 stays without it |
 | D-26 | no record of the ID card check | optional ID card photo per booking (`stay_id_photos`, `/api/v1/id-photos`, `/api/v1/stays/{id}/id-photo`, `/files/id-photo/{stayId}`), shrunk in the browser, deleted 90 days after check-out | requested feature; separate table and endpoints, so snapshot and attachment contracts are unchanged |
 | D-25 | staff accounts only via `user:create`; `manage_users` unused; no password change | users page and API for admins, own password change for everyone, minimum password length 10, sessions re-validated by security stamp (the cookie events had dropped Identity's validator) | requested feature after the migration; v1 endpoints and contract unchanged |
@@ -146,7 +148,7 @@ Status: ☑ done and verified (unit, integration and contract tests; Docker smok
 - A5: Existing volumes are owned by Alpine `www-data` (uid 82); a one-shot `storage-init` service chowns them for the non-root .NET user (uid 1654).
 - A6: Swagger UI (Development only) reads the built-in OpenAPI document.
 - A7: Environment variable names switch to ASP.NET Core style (`Database__Provider`, …); `SUPABASE_DB_*`, `DEMO_ADMIN_*`, `UPLOAD_MAX_BYTES`, `BACKUP_KEEP`, `SESSION_LIFETIME` keep their PHP names for easy upgrade.
-- A8: The Thai worksheet `docs/ใบงานปฏิบัติงาน_Stay_Book.docx` and its generator `tools/build_staybook_worksheet.py` are kept unchanged as a historical record of the PHP phase; regenerating them needs Python + python-docx, which are not installed here.
+- A8: The Thai worksheet `Docs/ใบงานปฏิบัติงาน_Stay_Book.docx` and its generator `tools/build_staybook_worksheet.py` are kept unchanged as a historical record of the PHP phase; regenerating them needs Python + python-docx, which are not installed here.
 - A9: The local installation was upgraded in place: the old `.env` is saved as `.env.php.bak` (git-ignored) and `.env` was regenerated from `.env.example` with the admin, Supabase and limit values carried over; the PHP containers were stopped (not removed); the PHP database was copied to the backups volume as `php-stay_book-before-dotnet-20261030.sqlite` and imported with `import:php --truncate`. The unused `stay-book_staybook_sessions` volume was left in place.
 - A10: `MapStaticAssets` is not used because the front end is built by npm outside MSBuild; `UseStaticFiles` + `asp-append-version` provide fingerprinting.
 - A11: In comments and test names the previous implementation is called "v1"; only these two history documents, the `import:php` command and the `php-original` tag name it.

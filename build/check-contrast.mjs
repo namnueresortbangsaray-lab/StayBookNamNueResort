@@ -1,5 +1,5 @@
 // Fails the build when a token pair used for text (4.5:1) or UI parts and focus rings (3:1) misses WCAG AA,
-// in the light or the dark theme. Pairs mirror how components use the tokens (see docs/DESIGN_SYSTEM.md).
+// in the light or the dark theme. Pairs mirror how components use the tokens (see DESIGN.md).
 import { readFileSync } from 'node:fs';
 
 const css = readFileSync(new URL('../Styles/tokens.css', import.meta.url), 'utf8');

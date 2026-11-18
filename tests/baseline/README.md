@@ -1,6 +1,6 @@
 # Baseline (characterization) of v1
 
-Captured on 2026-10-30 from the v1 release (see `docs/PROJECT_KNOWLEDGE.md`), run in an isolated Compose project
+Captured on 2026-10-30 from the v1 release (see `Docs/PROJECT_KNOWLEDGE.md`), run in an isolated Compose project
 on port 8090 with empty volumes and the seed enabled, plus a `housekeeping@staybook.local` / `Housekeeping123!` user
 (role housekeeping). Recording command:
 
@@ -29,7 +29,7 @@ the two. Fields that legitimately differ between runs:
 
 - Every mutation is answered with message `บันทึกเรียบร้อย` and HTTP 200 (no 201/204).
 - Upload errors (missing file, wrong type, too large) return **500** `ระบบไม่สามารถบันทึกข้อมูลได้`
-  in v1 (see deviation D-07 in `docs/DOTNET_MIGRATION_PLAN.md`).
+  in v1 (see deviation D-07 in `Docs/DOTNET_MIGRATION_PLAN.md`).
 - `PUT /api/v1/stays/{unknown}` returns **422** `{id: ไม่พบ Booking}`, unlike rooms/guests (404).
 - The CSV export validates `start`/`end` but lists **all** stays, not only the range.
 - `/files/{id}` without a session redirects (302 `/login`) because only `/api/*` paths get JSON 401.

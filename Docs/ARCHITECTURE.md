@@ -2,18 +2,24 @@
 
 ## Solution
 
+One ASP.NET Core project at the repository root (`StayBook.csproj`, assembly `StayBook.dll`, namespaces follow folders)
+and one test project; `StayBook.sln` holds both.
+
 ```
-src/ResortGuestbook.Web                 ASP.NET Core MVC app, API, Razor views, CLI, front-end sources
-src/ResortGuestbook.Data                EF Core model, provider setup, Identity store, seed, transfer/import/backup
-src/ResortGuestbook.Migrations.Sqlite   EF Core migrations for SQLite
-src/ResortGuestbook.Migrations.Postgres EF Core migrations for PostgreSQL (+ row level security)
-tests/ResortGuestbook.Tests             unit, data (both providers), integration, baseline contract
-tests/baseline                          recorded HTTP behaviour of v1, replay + compare scripts
-tests/smoke                             curl/jq end-to-end test
+Context/        AppDbContext, entity configurations, value converters, interceptors, SQLite options, design-time factory
+Data/           Migrations (SQLite), Seed, Transfer (import writer), Legacy (v1 reader), Maintenance (backup)
+Models/         Entities, Dtos, ViewModels
+Helpers/        Authorization, Cli, Extensions (DI and pipeline), Http, Identity, Middleware, Options, Storage, TagHelpers
+Controllers/    MVC + Api/V1          Services/   domain services, Validation, Errors
+Views/ Resources/ Scripts/ Styles/ build/ wwwroot/    Razor, .resx, front-end sources and output
+tests/StayBook.Tests   unit, data (SQLite), integration, baseline contract
+tests/baseline         recorded HTTP behaviour of v1, replay + compare scripts
+tests/smoke, tests/ui  curl/jq end-to-end test; axe-core and screenshot scripts
+Docs/  DESIGN.md       documentation; design system
 ```
 
-The data layer is a separate library because each migrations project must reference the `DbContext` and the web app
-must load both migrations assemblies; with the context inside the web project those references would form a cycle.
+Until 2026-11-18 the code was split into Web, Data and two migrations projects (one per database provider). With
+PostgreSQL removed (D-28) one migrations set remains, so everything lives in one project (D-29).
 
 ## Request pipeline
 
@@ -47,12 +53,11 @@ endpoint, so they never trigger a login redirect.
 
 ## Data
 
-One EF Core model, two providers, chosen by `Database:Provider`; only `ResortGuestbook.Data` and DI registration know
-which. Tables, columns, CHECK constraints and indexes keep the v1 schema. On SQLite, GUIDs are lowercase TEXT and
-timestamps UTC TEXT (`…+00:00`) via value converters; PostgreSQL uses `uuid`, `timestamptz`, `date`, `jsonb`.
+One EF Core model on SQLite (`Context/AppDbContextOptions`; PostgreSQL support was removed, D-28). Tables, columns,
+CHECK constraints and indexes keep the v1 schema. GUIDs are lowercase TEXT and timestamps UTC TEXT (`…+00:00`) via
+value converters.
 Interceptors set `created_at`/`updated_at` and SQLite pragmas (foreign keys, WAL, 5 s busy timeout). `deleted_at` is a
-global query filter; deletes are physical, as before. Search uses `lower(col) LIKE lower(@p)` on SQLite and `ILIKE` on
-PostgreSQL (`StaySearchExtensions`).
+global query filter; deletes are physical, as before. Search uses `lower(col) LIKE lower(@p)` (`StaySearchExtensions`).
 
 ## Security
 
@@ -67,7 +72,6 @@ PostgreSQL (`StaySearchExtensions`).
 - CSP with a per-request script nonce, `X-Frame-Options: DENY`, `nosniff`, `Referrer-Policy`, `Permissions-Policy`.
 - Uploads outside `wwwroot`, delivered only by `FilesController` after authorization, with `nosniff`. ID card photos
   are shrunk in the browser (`Scripts/core/image.js`), served with `no-store`, and purged after the retention period.
-- PostgreSQL: RLS enabled on all tables without policies.
 
 ## Front end
 

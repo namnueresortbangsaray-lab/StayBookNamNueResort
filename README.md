@@ -3,10 +3,10 @@
 Staff web app for the resort's guest logbook: room board, bookings, check-in/out with room inspection, guest history and
 lifetime stats, pricing, attachments, analytics, CSV export, roles and an audit trail. The UI is Thai.
 
-Built with ASP.NET Core MVC (.NET 10), EF Core (SQLite by default, PostgreSQL/Supabase ready), ASP.NET Core Identity,
+Built with ASP.NET Core MVC (.NET 10), EF Core with SQLite, ASP.NET Core Identity,
 Razor, Tailwind CSS and vanilla JavaScript, packaged for Docker.
 
-คู่มือผู้ใช้ภาษาไทย: [docs/USAGE_TH.md](docs/USAGE_TH.md)
+คู่มือผู้ใช้ภาษาไทย: [Docs/USAGE_TH.md](Docs/USAGE_TH.md)
 
 ## Quick start
 
@@ -32,13 +32,9 @@ Open <http://localhost:8080> and sign in with the seeded demo account:
 | `APP_PORT` | `8080` | Host port |
 | `ASPNETCORE_ENVIRONMENT` | `Production` | `Development` enables Swagger UI at `/swagger` and detailed logs |
 | `App__Timezone` | `Asia/Bangkok` | Display timezone ("today", default report month); data is stored in UTC |
-| `Database__Provider` | `Sqlite` | `Sqlite` or `Postgres` |
 | `Database__AutoMigrate` | `true` | Apply EF Core migrations at startup |
 | `Database__Seed` | `true` | Create the demo admin and the five rooms when missing |
 | `ConnectionStrings__Sqlite` | `Data Source=/app/storage/database/staybook.db` | SQLite file (in the `staybook_database` volume) |
-| `SUPABASE_DB_HOST/PORT/NAME/USER/PASSWORD` | empty / 5432 / postgres / postgres / empty | PostgreSQL / Supabase connection |
-| `PGSQL_SSLMODE` | `Require` | Npgsql SSL mode |
-| `SUPABASE_DB_TRANSACTION_POOLER` | `false` | Disable prepared statements (automatic on port 6543) |
 | `DEMO_ADMIN_EMAIL`, `DEMO_ADMIN_PASSWORD` | demo values | Seeded administrator |
 | `Storage__Provider` | `Local` | File storage (`storage/uploads`, never public) |
 | `UPLOAD_MAX_BYTES` | `5242880` | Attachment limit (JPEG, PNG, WebP, PDF) |
@@ -59,13 +55,12 @@ Open <http://localhost:8080> and sign in with the seeded demo account:
 | `make migrate` / `make seed` | Apply migrations / seed |
 | `make user-create NAME_ARG="ชื่อ" EMAIL=a@b.c PASSWORD=... ROLE=front_desk` | Create a staff account (`admin`, `front_desk`, `housekeeping`) |
 | `make backup` | SQLite online backup into the `staybook_backups` volume |
-| `make db-transfer` | Copy all data SQLite → PostgreSQL/Supabase |
 | `make import-php` | Import an existing v1 installation (see below) |
 | `make test` / `make format-check` / `make smoke` | Tests, formatting, end-to-end smoke test |
-| `make migrations-add NAME=AddX` | Create a migration for both providers |
+| `make migrations-add NAME=AddX` | Create a migration in `Data/Migrations` |
 
-Inside the container the CLI is `dotnet ResortGuestbook.Web.dll <command>`:
-`migrate`, `seed`, `user:create`, `db:backup`, `db:transfer --from=sqlite --to=postgres [--truncate] [--dry-run]`,
+Inside the container the CLI is `dotnet StayBook.dll <command>`:
+`migrate`, `seed`, `user:create`, `db:backup`,
 `import:php --sqlite=<file> [--uploads=<dir>] [--truncate] [--dry-run]`.
 
 ## Development without Docker
@@ -73,34 +68,35 @@ Inside the container the CLI is `dotnet ResortGuestbook.Web.dll <command>`:
 Requirements: .NET 10 SDK, Node 22.
 
 ```bash
-npm --prefix src/ResortGuestbook.Web ci
-npm --prefix src/ResortGuestbook.Web run build      # or run dev for watchers
-dotnet run --project src/ResortGuestbook.Web         # http://localhost:8080, Development, seeds automatically
+npm ci
+npm run build      # or run dev for watchers
+dotnet run --project StayBook.csproj   # http://localhost:8080, Development, seeds automatically
 ```
 
-The SQLite file and uploads go to `storage/` under the working directory.
+The SQLite file and uploads go to `storage/` under the working directory (git-ignored).
+
+The code is one project at the repository root; see the layout in [Docs/ARCHITECTURE.md](Docs/ARCHITECTURE.md). Pass
+`StayBook.sln` to `dotnet build`, `test` and `format` (the root holds both the solution and the project).
 
 ### EF Core migrations
 
-One model, one migrations project per provider (`dotnet tool restore` installs `dotnet-ef`):
+Migrations live in `Data/Migrations` (`dotnet tool restore` installs `dotnet-ef`):
 
 ```bash
-dotnet ef migrations add <Name> -p src/ResortGuestbook.Migrations.Sqlite -s src/ResortGuestbook.Migrations.Sqlite
-dotnet ef migrations add <Name> -p src/ResortGuestbook.Migrations.Postgres -s src/ResortGuestbook.Migrations.Postgres
+dotnet ef migrations add <Name> --project StayBook.csproj --output-dir Data/Migrations
 ```
 
 The app applies pending migrations on startup (`Database__AutoMigrate=true`) or with `make migrate`. A test fails if the
-model has changes without a migration for either provider.
+model has changes without a migration.
 
 ## Tests
 
 ```bash
-dotnet test
+dotnet test StayBook.sln
 ```
 
-Runs unit tests, data tests on SQLite **and** PostgreSQL 15 (Testcontainers, needs Docker), `WebApplicationFactory`
-integration tests, and a contract test that replays the recorded HTTP behaviour of v1 (`tests/baseline/`, needs Node).
-Set `STAYBOOK_TEST_POSTGRES` to an admin connection string to use an existing PostgreSQL instead of a container.
+Runs unit tests, data tests on SQLite, `WebApplicationFactory` integration tests, and a contract test that replays the
+recorded HTTP behaviour of v1 (`tests/baseline/`, needs Node).
 
 `tests/smoke/smoke-test.sh` (curl + jq) checks a running instance end to end.
 
@@ -123,7 +119,7 @@ uploads are already mounted. The new app uses its own file (`staybook.db`) and n
 
 1. Back up the old database, e.g.
    `docker run --rm -v stay-book_staybook_database:/db:ro -v stay-book_staybook_backups:/b busybox cp /db/stay_book.sqlite /b/`
-2. Stop the old containers, regenerate `.env` from `.env.example` (carry over your admin, Supabase and limit values),
+2. Stop the old containers, regenerate `.env` from `.env.example` (carry over your admin and limit values),
    then `docker compose up -d --build`.
 3. `make import-php` — copies every row (ids, bcrypt password hashes, timestamps) and checks the uploaded files; it is
    idempotent and `--dry-run` shows the counts first. `--truncate` replaces the freshly seeded demo data.
@@ -138,25 +134,25 @@ phone menu or the sign-in page. It works on phones (menu button, bottom tabs, ca
 tables). The ☰ button at the left of the top bar collapses the sidebar to icons and back. A comfortable/compact
 density toggle sits next to the theme menu. Ctrl/⌘K opens search from anywhere.
 
-- Tokens, breakpoints, components and dark mode: [docs/DESIGN_SYSTEM.md](docs/DESIGN_SYSTEM.md). Screenshots in both
-  themes at 390, 768, 1024 and 1440px, with loading, error and print states: `docs/design/after-skill/` (earlier:
-  `docs/design/before-skill/`, `docs/design/before/`). UI review against the ui-ux-pro-max skill:
-  [docs/design/SKILL_AUDIT.md](docs/design/SKILL_AUDIT.md).
+- Tokens, breakpoints, components and dark mode: [DESIGN.md](DESIGN.md). Screenshots in both
+  themes at 390, 768, 1024 and 1440px, with loading, error and print states: `Docs/design/after-skill/` (earlier:
+  `Docs/design/before-skill/`, `Docs/design/before/`). UI review against the ui-ux-pro-max skill:
+  [Docs/design/SKILL_AUDIT.md](Docs/design/SKILL_AUDIT.md).
 - Fonts (Prompt) and Lucide icons are self-hosted; `npm run build` copies the fonts,
   builds the icon sprite and fails if any colour pair misses WCAG AA in either theme.
 - UI checks against a running instance (`npm --prefix tests/ui ci && npx --prefix tests/ui playwright install chromium`):
 
 ```bash
 BASE_URL=http://localhost:8080 node tests/ui/a11y.mjs        # axe-core in both themes + responsive sweep
-BASE_URL=http://localhost:8080 node tests/ui/screenshots.mjs docs/design/after-skill light,dark 390,768,1024,1440
+BASE_URL=http://localhost:8080 node tests/ui/screenshots.mjs Docs/design/after-skill light,dark 390,768,1024,1440
 ```
 
 `tests/ui/seed-demo.mjs` fills an empty development instance with fictional guests for screenshots.
 
 ## Production
 
-See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md): `make prod-up` runs Nginx (gzip, security headers, upload limit, asset
-caching, forwarded headers) in front of the non-root Kestrel container. For Supabase see [docs/SUPABASE.md](docs/SUPABASE.md); for a hosted trial on Railway see [docs/RAILWAY.md](docs/RAILWAY.md).
+See [Docs/DEPLOYMENT.md](Docs/DEPLOYMENT.md): `make prod-up` runs Nginx (gzip, security headers, upload limit, asset
+caching, forwarded headers) in front of the non-root Kestrel container. For a hosted trial on Railway see [Docs/RAILWAY.md](Docs/RAILWAY.md).
 
 ## Troubleshooting
 
@@ -169,11 +165,10 @@ caching, forwarded headers) in front of the non-root Kestrel container. For Supa
 - **Upload rejected (422):** only JPEG, PNG, WebP and PDF up to `UPLOAD_MAX_BYTES`, detected from the file content.
 - **ID card photos:** attached in the booking form (camera on phones), visible to every signed-in staff member, and
   deleted automatically `IdPhotos__RetentionDays` days after check-out; each purge is in `audit_logs` (action `purge`).
-- **Styles missing when running locally:** run `npm --prefix src/ResortGuestbook.Web run build`.
-- **Supabase connection errors:** see the IPv6 and pooler notes in [docs/SUPABASE.md](docs/SUPABASE.md).
+- **Styles missing when running locally:** run `npm run build`.
 
 ## Documentation
 
-[API](docs/API.md) · [Architecture](docs/ARCHITECTURE.md) · [Deployment](docs/DEPLOYMENT.md) · [Supabase](docs/SUPABASE.md) · [Railway](docs/RAILWAY.md) ·
-[Project knowledge](docs/PROJECT_KNOWLEDGE.md) · [Migration plan and deviations](docs/DOTNET_MIGRATION_PLAN.md) ·
-[Design system](docs/DESIGN_SYSTEM.md) · [UI audit and assumptions](docs/design/UI_AUDIT.md)
+[API](Docs/API.md) · [Architecture](Docs/ARCHITECTURE.md) · [Deployment](Docs/DEPLOYMENT.md) · [Railway](Docs/RAILWAY.md) ·
+[Project knowledge](Docs/PROJECT_KNOWLEDGE.md) · [Migration plan and deviations](Docs/DOTNET_MIGRATION_PLAN.md) ·
+[Design system](DESIGN.md) · [UI audit and assumptions](Docs/design/UI_AUDIT.md)

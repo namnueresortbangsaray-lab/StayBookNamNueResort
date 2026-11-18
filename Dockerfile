@@ -3,30 +3,26 @@
 # 1. Front-end: contrast gate, fonts, icon sprite, Tailwind CSS and esbuild bundle -> wwwroot
 FROM node:22-bookworm-slim AS assets
 WORKDIR /web
-COPY src/ResortGuestbook.Web/package.json src/ResortGuestbook.Web/package-lock.json ./
+COPY package.json package-lock.json ./
 RUN npm ci --no-audit --no-fund
-COPY src/ResortGuestbook.Web/build.mjs src/ResortGuestbook.Web/tailwind.config.js ./
-COPY src/ResortGuestbook.Web/build ./build
-COPY src/ResortGuestbook.Web/Styles ./Styles
-COPY src/ResortGuestbook.Web/Scripts ./Scripts
-COPY src/ResortGuestbook.Web/Views ./Views
+COPY build.mjs tailwind.config.js ./
+COPY build ./build
+COPY Styles ./Styles
+COPY Scripts ./Scripts
+COPY Views ./Views
 RUN npm run build
 
-# 2. Restore (cached on project files only) and publish
+# 2. Restore (cached on the project file only) and publish
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /src
-COPY global.json Directory.Build.props Directory.Packages.props ./
-COPY src/ResortGuestbook.Data/ResortGuestbook.Data.csproj src/ResortGuestbook.Data/
-COPY src/ResortGuestbook.Migrations.Sqlite/ResortGuestbook.Migrations.Sqlite.csproj src/ResortGuestbook.Migrations.Sqlite/
-COPY src/ResortGuestbook.Migrations.Postgres/ResortGuestbook.Migrations.Postgres.csproj src/ResortGuestbook.Migrations.Postgres/
-COPY src/ResortGuestbook.Web/ResortGuestbook.Web.csproj src/ResortGuestbook.Web/
-RUN dotnet restore src/ResortGuestbook.Web/ResortGuestbook.Web.csproj
-COPY src/ src/
-COPY --from=assets /web/wwwroot/css src/ResortGuestbook.Web/wwwroot/css
-COPY --from=assets /web/wwwroot/js src/ResortGuestbook.Web/wwwroot/js
-COPY --from=assets /web/wwwroot/fonts src/ResortGuestbook.Web/wwwroot/fonts
-COPY --from=assets /web/wwwroot/icons.svg src/ResortGuestbook.Web/wwwroot/icons.svg
-RUN dotnet publish src/ResortGuestbook.Web/ResortGuestbook.Web.csproj -c Release -o /app --no-restore -p:UseAppHost=false
+COPY global.json Directory.Build.props Directory.Packages.props StayBook.csproj ./
+RUN dotnet restore StayBook.csproj
+COPY . .
+COPY --from=assets /web/wwwroot/css wwwroot/css
+COPY --from=assets /web/wwwroot/js wwwroot/js
+COPY --from=assets /web/wwwroot/fonts wwwroot/fonts
+COPY --from=assets /web/wwwroot/icons.svg wwwroot/icons.svg
+RUN dotnet publish StayBook.csproj -c Release -o /app --no-restore -p:UseAppHost=false
 
 # 3. Runtime: Ubuntu-based ASP.NET image (ICU and tzdata included), non-root user "app" (uid 1654)
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime
@@ -40,4 +36,4 @@ USER app
 EXPOSE 8080
 HEALTHCHECK --interval=15s --timeout=5s --start-period=30s --retries=5 \
     CMD ["bash", "-c", "exec 3<>/dev/tcp/127.0.0.1/8080 && printf 'GET /health HTTP/1.0\\r\\nHost: localhost\\r\\n\\r\\n' >&3 && grep -q '^ok' <&3"]
-ENTRYPOINT ["dotnet", "ResortGuestbook.Web.dll"]
+ENTRYPOINT ["dotnet", "StayBook.dll"]

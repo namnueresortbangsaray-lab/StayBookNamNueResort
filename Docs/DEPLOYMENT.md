@@ -3,7 +3,7 @@
 ## Single host with Docker
 
 ```bash
-cp .env.example .env          # set DEMO_ADMIN_PASSWORD, APP_PORT, Supabase values if used
+cp .env.example .env          # set DEMO_ADMIN_PASSWORD and APP_PORT
 make prod-up                  # docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
 ```
 
@@ -12,9 +12,9 @@ Services:
 | Service | Image | Role |
 |---|---|---|
 | `storage-init` | busybox | One-shot: creates the storage folders and gives them to uid 1654 |
-| `web` | `docker/Dockerfile` | Kestrel on 8080, non-root `app` user, ICU + tzdata, healthcheck on `/health` (no curl needed) |
+| `web` | `Dockerfile` | Kestrel on 8080, non-root `app` user, ICU + tzdata, healthcheck on `/health` (no curl needed) |
 | `nginx` | nginx 1.27 | Public port `${APP_PORT}`; gzip, security headers, 6 MB upload limit, dotfiles denied, long caching for versioned assets, `X-Forwarded-*` |
-| `postgres` | postgres 15 | Profile `pgtest` only |
+| `backup` | same image | `db:backup` at start and every `BACKUP_INTERVAL_SECONDS` (24 h) into the backups volume |
 
 `web` publishes no port in production; Nginx forwards to it and `App__TrustForwardedHeaders=true` lets the app see the
 client IP (used by the login throttle and the audit log) and scheme.
@@ -22,7 +22,7 @@ client IP (used by the login throttle and the audit log) and scheme.
 ## TLS
 
 Terminate TLS in front of Nginx (a reverse proxy, Cloudflare Tunnel or a load balancer) or add a `listen 443 ssl`
-server block with your certificates to `docker/nginx/default.conf`. Cookies follow the request scheme, so they are
+server block with your certificates to `nginx/default.conf`. Cookies follow the request scheme, so they are
 `Secure` over HTTPS. HSTS is sent by the app in Production on HTTPS requests.
 
 ## Volumes

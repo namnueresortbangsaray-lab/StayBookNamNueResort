@@ -13,18 +13,17 @@ jobs:
         with:
           node-version: '22'
           cache: npm
-          cache-dependency-path: src/ResortGuestbook.Web/package-lock.json
+          cache-dependency-path: package-lock.json
       - name: Front-end build
-        working-directory: src/ResortGuestbook.Web
         run: npm ci && npm run lint && npm run build
       - run: dotnet tool restore
-      - run: dotnet restore ResortGuestbook.sln
+      - run: dotnet restore StayBook.sln
       - name: Build (warnings as errors)
-        run: dotnet build ResortGuestbook.sln -c Release --no-restore
+        run: dotnet build StayBook.sln -c Release --no-restore
       - name: Format check
-        run: dotnet format ResortGuestbook.sln --verify-no-changes --no-restore
-      - name: Tests (SQLite + PostgreSQL via Testcontainers + baseline contract)
-        run: dotnet test ResortGuestbook.sln -c Release --no-build --logger "console;verbosity=normal"
+        run: dotnet format StayBook.sln --verify-no-changes --no-restore
+      - name: Tests (SQLite + baseline contract)
+        run: dotnet test StayBook.sln -c Release --no-build --logger "console;verbosity=normal"
 
   docker:
     runs-on: ubuntu-latest
