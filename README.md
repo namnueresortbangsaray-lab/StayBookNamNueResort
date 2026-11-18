@@ -156,7 +156,7 @@ BASE_URL=http://localhost:8080 node tests/ui/screenshots.mjs docs/design/after-s
 ## Production
 
 See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md): `make prod-up` runs Nginx (gzip, security headers, upload limit, asset
-caching, forwarded headers) in front of the non-root Kestrel container. For Supabase see [docs/SUPABASE.md](docs/SUPABASE.md).
+caching, forwarded headers) in front of the non-root Kestrel container. For Supabase see [docs/SUPABASE.md](docs/SUPABASE.md); for a hosted trial on Railway see [docs/RAILWAY.md](docs/RAILWAY.md).
 
 ## Troubleshooting
 
@@ -174,6 +174,6 @@ caching, forwarded headers) in front of the non-root Kestrel container. For Supa
 
 ## Documentation
 
-[API](docs/API.md) · [Architecture](docs/ARCHITECTURE.md) · [Deployment](docs/DEPLOYMENT.md) · [Supabase](docs/SUPABASE.md) ·
+[API](docs/API.md) · [Architecture](docs/ARCHITECTURE.md) · [Deployment](docs/DEPLOYMENT.md) · [Supabase](docs/SUPABASE.md) · [Railway](docs/RAILWAY.md) ·
 [Project knowledge](docs/PROJECT_KNOWLEDGE.md) · [Migration plan and deviations](docs/DOTNET_MIGRATION_PLAN.md) ·
 [Design system](docs/DESIGN_SYSTEM.md) · [UI audit and assumptions](docs/design/UI_AUDIT.md)
