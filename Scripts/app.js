@@ -1258,6 +1258,7 @@ if ($('#app')) {
       };
       const onAccept = () => finish(true);
       const onCancel = event => {
+        if (event?.type === 'cancel' && event.target !== dialog) return;
         event?.preventDefault();
         finish(false);
       };
@@ -1578,8 +1579,10 @@ if ($('#app')) {
 
   // Unsaved-changes guard on the form dialogs (Esc goes through the same check).
   $$('form[data-guard]').forEach(form => form.addEventListener('input', () => { form.dataset.dirty = 'true'; }));
+  // A file input fires its own bubbling `cancel` when its picker is dismissed (ID card photo, attachments); only the
+  // dialog's own cancel (Esc) closes it.
   $$('dialog').forEach(dialog => dialog.addEventListener('cancel', event => {
-    if (dialog.id === 'confirm-dialog') return;
+    if (event.target !== dialog || dialog.id === 'confirm-dialog') return;
     event.preventDefault();
     requestClose(dialog);
   }));
